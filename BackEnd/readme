@@ -1,0 +1,77 @@
+/*
+TAREA 17/9/26 (CORREJIDA Y COMPLETADA 22/9/26 )
+Crear un schema de mongoose para el Worksapce (espacios_trabajo)
+Seguir el mismo foramto que en SQL(fecha_creacion, nombre, descripcion)
+Crear el schemo y modelo dentro de /model/wprkspace.model.js
+Crear una funcion llamada createWorkspace(name, description) que inserte en la db un espacio de trabajo
+*/
+
+/*
+TAREA 24/9/26 (Tratar de tenerlo para la clase 17, 6/10/26)
+Modelos:
+  -Channel
+    - fk_id_espacio_trabajo
+    - fecha_creacion
+    - descripcion
+  -MessageChannel
+    - contenido
+    - fk_id_chanal
+    - fk_id_emisor
+    - fecha_creacion
+    - editado : boolean OR fecha_edicion: Date (opcional si queres editar mensajes)
+  -DirectMessage
+    - contenido
+    - fk_id_emisor
+    - fk_id_receptor
+    - fecha_creacion
+
+Repositories:
+
+  WorksapceRepository
+    - getById(workspaceId)
+    - deleteById(workspaceId)
+    - updateById(workspaceId {name, description})
+
+  ChannelRepository
+    - create
+    - deleteById(channel_id)
+    - updateById(name, description)
+    - getAllChannelsByWorkspaceId(workspaceId)
+
+  MessageChannelRepository
+    - create
+    - deleteById(mesage_id)
+    - updateById(contenido) (opcional)
+    - getAllMessagesByCahnnelId(channel_id)
+    - getAllMessagesBySearchTerm(searchTerm) (trae todos los mensajes por termino de busqueda,buscamos por contenido)
+    - getAllMessagesByDateRange(min_date, max_date) (trae todos los mensajes por rango de fechas)
+    - getAllMessagesByMemberId(member_id) (trae todos los mensajes por usuario)
+
+  DirectMessageRepository
+    - create
+    - deleteById(mesage_id)
+    - updateById(contenido) (opcional)
+    - getAllMessagesBySearchTerm(searchTerm) (trae todos los mensajes por termino de busqueda,buscamos por contenido)
+    - getAllMessagesByDateRange(min_date, max_date) (trae todos los mensajes por rango de fechas)
+*/
+
+/*
+TAREA 20/10/26
+Crear los endpoints:
+- (owner) DELETE /api/workspace/:wrokspace_id => Elimina espacio de trabajo
+- (owner, admin) DELETE /api/workspace/:workspace_id/members/:member_id
+- (owner, admin) PUT /api/workspace/:workspace => Actualizar nombre/descripcion del espacio de trabajo
+- (todos) get /api/workspace/:workspace_id/members
+- (owner, admin) POST /api/worksapce/:worksapce_id/members/invite
+  body : email (el mail del usuario a invitar)
+    - Revisar que el rol con el que secrea sea 'admin' o 'user'
+    - Revisar que no este ya agregado al wrokspace (que tnega una membresia)
+    - Crear la membresia con una propiedad 'invitacion aceptada' : flase
+    - Enviar un mail con un link para 'aceptar invitacion' (debe tener una expiraicon y debe enviar un token)
+      - Ese link hara un GET ahcia api/workspace/:workspace_id/:members/accept-invite/:invitation_token
+
+  - (todos) Unauthentified /api/workspace/:workspace_id/mebers/accept-invite/:invitation_token
+*/
+
+
+
