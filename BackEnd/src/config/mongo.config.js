@@ -1,5 +1,18 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 import ENVIROMMENT from "./enviromment.config.js";
+
+const dnsServers = dns.getServers();
+const usaSoloLoopback = dnsServers.length === 0 || dnsServers.every(
+  (server) => server === "127.0.0.1" || server === "::1"
+);
+
+// Workaround local: en algunas redes Node queda apuntando a 127.0.0.1 y no
+// puede resolver los SRV de MongoDB Atlas. En Vercel/produccion no se aplica.
+if (!process.env.VERCEL && process.env.NODE_ENV !== "production" && usaSoloLoopback) {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+  console.warn("[DNS] Node estaba usando loopback; usando 8.8.8.8/1.1.1.1 para desarrollo.");
+}
 
 async function connectMongoDB() {
   // Si ya estamos conectados (readyState 1), no volvemos a conectar

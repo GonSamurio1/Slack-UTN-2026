@@ -21,7 +21,7 @@ export async function register(request, response) {
 
   if (!nombre || !email || !password) {
     throw new ServerError(
-      "Email, password and username is required",
+      "Email, password and nombre is required",
       400
     )
   }
@@ -97,7 +97,7 @@ export async function register(request, response) {
               <!-- Footer -->
               <tr>
                 <td align="center" style="background-color: #f9fafb; padding: 15px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 12px;">
-                  © 2026 Tu Aplicación. Todos los derechos reservados.
+                  © 2026 GonzaAPP. Todos los derechos reservados.
                 </td>
               </tr>
             </table>
