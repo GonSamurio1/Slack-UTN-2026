@@ -5,7 +5,8 @@ class MemberRepository {
     return await Member.create({
       id_usuario: idUser,
       espacio_trabajo: workspaceId,
-      rol: role
+      rol: role,
+      activo : true
     });
   }
 
