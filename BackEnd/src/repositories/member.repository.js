@@ -37,7 +37,7 @@ class MemberRepository {
         member_id: membership._id,
         member_rol: membership.rol,
         workspace_id: membership.espacio_trabajo?._id,
-        workspace_nombre: membership.espacio_trabajo?.nombre,
+        workspace_nombre: membership.espacio_trabajo?.name,
         workspace_fecha_creacion: membership.espacio_trabajo?.fecha_creacion
       };
     });

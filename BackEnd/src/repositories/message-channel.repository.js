@@ -20,7 +20,12 @@ class MessageChannelRepository {
   }
 
   async updateById(messageId, contenido) {
-    const result = await MessageChannel.findByIdAndUpdate(messageId, { contenido }, { new: true })
+    const result = await MessageChannel.findByIdAndUpdate
+      (
+        messageId,
+        { contenido, editado: true },
+        { new: true }
+      )
     return result
   }
 

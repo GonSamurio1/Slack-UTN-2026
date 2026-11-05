@@ -19,7 +19,7 @@ class DirectMessageRepository {
   async updateById(messageId, contenido) {
     const result = await DirectMessage.findByIdAndUpdate(
       messageId,
-      { contenido },
+      { contenido, editado: true },
       { new: true }
     );
     return result;
