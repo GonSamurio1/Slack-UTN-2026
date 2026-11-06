@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
 import useRequest from '../../hooks/useRequest'
+import { useNavigate } from 'react-router-dom'
 
 /*
 Siguiendo las practicas implementadas al conecra el formlario del ogin con nuesa API REST. Desarrollar la implementacion del formulario de registro y la consultarla a la API REST
@@ -13,6 +14,9 @@ function LoginScreen() {
   const { formState, handleChangeInput } = useForm(initial_state)
   const { loading, response, error, sendRequest } = useRequest()
 
+  const navigate = useNavigate()
+
+
   async function handleSubmit(event) {
     event.preventDefault()
     sendRequest(
@@ -20,6 +24,22 @@ function LoginScreen() {
     )
     console.log('Usuario intenta iniciar sesion', formState)
   }
+
+  /* Los efectos sirven para controlar la recarha/ejecucion de una funcion, cuando la response cambie/llegue:
+    -voy a reidreccionar a /home
+    -Guaradar en localstorage el auth_token (para poder seguir usandolo)
+
+  */
+  useEffect(
+    () => {
+      if (response && response.data) {
+        //console.log('Respuesta del back:', response)
+        localStorage.setItem('auth_token', response.data.authToken)
+        navigate('/')
+      }
+    },
+    [response]
+  )
 
   return (
     <div>
