@@ -22,8 +22,6 @@ export async function login(email, password) {
   //Leemos el cuerpo de la respuesta como un JSON
   const response_body = await response_http.json()
 
-
-
   if (!response_body.ok) {
     throw new Error(response_body.message)
   }
