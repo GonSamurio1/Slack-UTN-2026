@@ -1,0 +1,63 @@
+/*
+  Variables y estilos globales de la aplicacion
+  Paleta principal inspirada en Slack, color principal: #481A54
+*/
+:root {
+  /* Color principal */
+  --primary: #481A54;
+  --primary-dark: #3A1544;
+  --primary-soft: rgba(72, 26, 84, 0.08);
+
+  /* Fondos y superficies */
+  --background: #FFFFFF;
+  --surface: #FFFFFF;
+
+  /* Texto */
+  --text: #181818;
+  --text-muted: #616061;
+
+  /* Bordes */
+  --border: #D5D0D9;
+  --border-focus: #481A54;
+
+  /* Estados */
+  --success: #2E7D32;
+  --success-bg: #E8F5E9;
+  --success-border: #A5D6A7;
+  --error: #C62828;
+  --error-bg: #FDECEA;
+  --error-border: #F5B7B1;
+
+  /* Paleta Slack para branding */
+  --slack-blue: #36C5F0;
+  --slack-green: #2EB67D;
+  --slack-yellow: #ECB22E;
+  --slack-red: #E01E5A;
+
+  /* Forma y sombras */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --shadow-card: 0 4px 24px rgba(29, 28, 29, 0.08);
+
+  /* Tipografia */
+  --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Reset minimo para consistencia entre navegadores */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button {
+  font-family: inherit;
+}

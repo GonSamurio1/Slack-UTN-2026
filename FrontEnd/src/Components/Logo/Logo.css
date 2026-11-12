@@ -1,0 +1,43 @@
+/* Tamano fluido: 44px en moviles, 56px en escritorio */
+.logo-clover {
+  position: relative;
+  display: inline-block;
+  width: clamp(44px, 12vw, 56px);
+  aspect-ratio: 1;
+}
+
+/* Cada hoja ocupa un cuarto del contenedor, con la punta
+   (esquina sin radio) apuntando al centro */
+.logo-clover__leaf {
+  position: absolute;
+  width: 48%;
+  height: 48%;
+}
+
+.logo-clover__leaf--blue {
+  top: 0;
+  left: 0;
+  background: var(--slack-blue);
+  border-radius: 50% 50% 0 50%;
+}
+
+.logo-clover__leaf--green {
+  top: 0;
+  right: 0;
+  background: var(--slack-green);
+  border-radius: 50% 50% 50% 0;
+}
+
+.logo-clover__leaf--yellow {
+  bottom: 0;
+  right: 0;
+  background: var(--slack-yellow);
+  border-radius: 0 50% 50% 50%;
+}
+
+.logo-clover__leaf--red {
+  bottom: 0;
+  left: 0;
+  background: var(--slack-red);
+  border-radius: 50% 0 50% 50%;
+}

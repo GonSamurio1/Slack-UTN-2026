@@ -1,0 +1,169 @@
+/*
+  Layout local de la pantalla de registro.
+  Los estilos de campos, boton y mensajes viven en sus componentes.
+*/
+.register-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  padding: 24px;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+  Curvas violetas de fondo estilo Slack: dos elipses gigantes
+  recortadas por la pantalla, con borde suave para lograr el
+  degradado entre blanco y violeta (#481A54).
+*/
+.register-screen::before,
+.register-screen::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Curva superior */
+.register-screen::before {
+  width: 170vw;
+  height: 70vh;
+  top: calc(-70vh + 140px);
+  left: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* Curva inferior */
+.register-screen::after {
+  width: 170vw;
+  height: 70vh;
+  bottom: calc(-70vh + 140px);
+  right: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* El contenido siempre por encima de las curvas */
+.register-intro,
+.register-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Bloque de bienvenida, fuera de la tarjeta */
+.register-intro {
+  text-align: center;
+}
+
+.register-intro__title {
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.register-intro__subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 34px 44px;
+}
+
+.register-card__logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.register-card__title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.register-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register-card__login-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 18px 0 0;
+}
+
+.register-card__login-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-card__login-link:hover {
+  text-decoration: underline;
+}
+
+/* Adaptacion a dispositivos pequenos */
+@media (max-width: 480px) {
+  .register-screen {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  /* Curvas menos invasivas en pantallas pequenas */
+  .register-screen::before {
+    top: calc(-70vh + 90px);
+  }
+
+  .register-screen::after {
+    bottom: calc(-70vh + 90px);
+  }
+
+  .register-card {
+    padding: 28px 20px;
+  }
+
+  .register-intro__title {
+    font-size: 30px;
+  }
+
+  .register-intro__subtitle {
+    font-size: 15px;
+  }
+
+  .register-card__logo {
+    margin-bottom: 12px;
+  }
+
+  .register-card__title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .register-card__form {
+    gap: 14px;
+  }
+}

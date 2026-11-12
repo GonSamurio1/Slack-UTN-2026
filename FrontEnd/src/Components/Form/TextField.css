@@ -1,0 +1,41 @@
+.text-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.text-field__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 16px minimo para evitar el zoom automatico en iOS */
+/* Sin borde: look Slack con sombra suave. El borde transparente
+   mantiene la altura identica al estado con foco */
+.text-field__input {
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid transparent;
+  box-shadow: 0 0 6px #0000001a;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: box-shadow 0.15s ease;
+}
+
+.text-field__input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary), 0 0 6px var(--primary-soft);
+}
+
+.text-field__input::placeholder {
+  color: var(--text-muted);
+}
+
+/* En pantallas grandes de escritorio los inputs se angostan ~15% */
+@media (min-width: 1024px) {
+  .text-field__input {
+    width: 85%;
+  }
+}
