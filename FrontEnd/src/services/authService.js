@@ -56,3 +56,37 @@ export async function register(nombre, email, password) {
   }
   return response_body
 }
+
+/*
+Consulta a la API para reenviar el mail de verificacion
+de la cuenta a un email registrado y aun no verificado
+*/
+export async function resendEmailVerification(email) {
+  const response_http = await fetch(
+    API_URL + '/api/auth/verify-email/' + encodeURIComponent(email) + '/resend'
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+  return response_body
+}
+
+/*
+Consulta a la API para verificar la cuenta del usuario mediante el token
+que llega por querystring desde el link del correo electronico
+*/
+export async function verifyEmail(verification_token) {
+  const response_http = await fetch(
+    API_URL + '/api/auth/verify-email?verification_token=' + encodeURIComponent(verification_token)
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+  return response_body
+}

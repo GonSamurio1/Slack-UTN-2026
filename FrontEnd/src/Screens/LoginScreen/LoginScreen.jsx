@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
 import useRequest from '../../hooks/useRequest'
-import { useNavigate } from 'react-router-dom'
-
-/*
-Siguiendo las practicas implementadas al conecra el formlario del ogin con nuesa API REST. Desarrollar la implementacion del formulario de registro y la consultarla a la API REST
-*/
+import TextField from '../../Components/Form/TextField'
+import Button from '../../Components/Form/Button'
+import Alert from '../../Components/Alert/Alert'
+import Logo from '../../Components/Logo/Logo'
+import './LoginScreen.css'
 
 function LoginScreen() {
 
@@ -25,6 +26,23 @@ function LoginScreen() {
     console.log('Usuario intenta iniciar sesion', formState)
   }
 
+  /*
+    Mejora los mensajes del servidor: si el fallo es de red o el servidor
+    no envio detalle, mostramos un mensaje amigable en lugar del texto crudo.
+  */
+  function getErrorMessage(rawError) {
+    if (!rawError) return null
+    const networkErrors = ['failed to fetch', 'networkerror', 'load failed']
+    const isNetworkError = networkErrors.some(
+      (pattern) => rawError.toLowerCase().includes(pattern)
+    )
+    return isNetworkError
+      ? 'No se pudo conectar con el servidor. Intenta de nuevo.'
+      : rawError
+  }
+
+  const errorMessage = getErrorMessage(error)
+
   /* Los efectos sirven para controlar la recarha/ejecucion de una funcion, cuando la response cambie/llegue:
     -voy a reidreccionar a /home
     -Guaradar en localstorage el auth_token (para poder seguir usandolo)
@@ -42,49 +60,54 @@ function LoginScreen() {
   )
 
   return (
-    <div>
-      <h1>Inciar sesion</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            name='email'
-            id='email'
-            type='email'
+    <main className="login-screen">
+      <section className="login-intro">
+        <h1 className="login-intro__title">Bienvenido a Slack.</h1>
+        <p className="login-intro__subtitle">
+          Inicia sesion con tu cuenta para continuar
+        </p>
+      </section>
+      <section className="login-card">
+        <Logo size={60} className="login-card__logo" />
+        <h2 className="login-card__title">Iniciar sesion</h2>
+        <form className="login-card__form" onSubmit={handleSubmit}>
+          <TextField
+            label="Email:"
+            name="email"
+            id="email"
+            type="email"
             value={formState.email}
             onChange={handleChangeInput}
           />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            name='password'
-            id='password'
-            type='password'
+          <TextField
+            label="Password:"
+            name="password"
+            id="password"
+            type="password"
             value={formState.password}
             onChange={handleChangeInput}
           />
-        </div>
-        {
-          error
-          &&
-          !loading
-          &&
-          <span style={{ color: 'red' }}>{error}</span>
-        }
-
-        {
-          loading
-            ? <button type='submit' disabled={true} >Cargando...</button>
-            : <button type='submit'>Iniciar sesion</button>
-        }
-
-
-        {
-          response && !loading && <span style={{ color: 'greenyellow' }}>Inicio de sesion exitoso</span>
-        }
-      </form>
-    </div>
+          <Button type="submit" loading={loading}>
+            Iniciar sesion
+          </Button>
+        </form>
+        <p className="login-card__register-hint">
+          No tenes una cuenta?{' '}
+          <Link className="login-card__register-link" to="/register">
+            Registrate
+          </Link>
+        </p>
+        <p className="login-card__register-hint">
+          No recibiste el mail de verificacion?{' '}
+          <Link className="login-card__register-link" to="/resend-email-verification">
+            Reenviar
+          </Link>
+        </p>
+        {errorMessage && !loading && (
+          <Alert type="error" message={errorMessage} />
+        )}
+      </section>
+    </main>
   )
 }
 

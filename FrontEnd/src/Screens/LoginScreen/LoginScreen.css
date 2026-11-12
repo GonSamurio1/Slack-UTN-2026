@@ -1,0 +1,169 @@
+/*
+  Layout local de la pantalla de login.
+  Los estilos de campos, boton y mensajes viven en sus componentes.
+*/
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  padding: 24px;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+  Curvas violetas de fondo estilo Slack: dos elipses gigantes
+  recortadas por la pantalla, con borde suave para lograr el
+  degradado entre blanco y violeta (#481A54).
+*/
+.login-screen::before,
+.login-screen::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Curva superior */
+.login-screen::before {
+  width: 170vw;
+  height: 70vh;
+  top: calc(-70vh + 140px);
+  left: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* Curva inferior */
+.login-screen::after {
+  width: 170vw;
+  height: 70vh;
+  bottom: calc(-70vh + 140px);
+  right: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* El contenido siempre por encima de las curvas */
+.login-intro,
+.login-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Bloque de bienvenida, fuera de la tarjeta */
+.login-intro {
+  text-align: center;
+}
+
+.login-intro__title {
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.login-intro__subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 34px 44px;
+}
+
+.login-card__logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.login-card__title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-card__register-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 18px 0 0;
+}
+
+.login-card__register-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-card__register-link:hover {
+  text-decoration: underline;
+}
+
+/* Adaptacion a dispositivos pequenos */
+@media (max-width: 480px) {
+  .login-screen {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  /* Curvas menos invasivas en pantallas pequenas */
+  .login-screen::before {
+    top: calc(-70vh + 90px);
+  }
+
+  .login-screen::after {
+    bottom: calc(-70vh + 90px);
+  }
+
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .login-intro__title {
+    font-size: 30px;
+  }
+
+  .login-intro__subtitle {
+    font-size: 15px;
+  }
+
+  .login-card__logo {
+    margin-bottom: 12px;
+  }
+
+  .login-card__title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .login-card__form {
+    gap: 14px;
+  }
+}

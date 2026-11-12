@@ -45,6 +45,21 @@ export async function register(request, response) {
   const passwordHash = await generateHash(password)
   await userRepository.create(nombre, email, passwordHash)
 
+  await sendVerificationEmail(email)
+
+  return response.status(201).send({
+    ok: true,
+    status: 201,
+    message: 'User registred succesfully!'
+  })
+}
+
+/*
+Genera el token de verificacion y envia el mail con el link
+que apunta a la pantalla /verify-email del frontend.
+Se reutiliza tanto en el registro como en el reenvio.
+*/
+async function sendVerificationEmail(email) {
   const verifyEmailToken = jwt.sign
     (
       {
@@ -85,7 +100,7 @@ export async function register(request, response) {
                     Gracias por registrarte. Para completar tu registro y activar tu cuenta, hacé clic en el siguiente botón:
                   </p>
                   <!-- Botón CTA -->
-                  <a href="${ENVIROMMENT.URL_BACKEND}/api/auth/verify-email/${verifyEmailToken}"
+                  <a href="${ENVIROMMENT.URL_FRONTEND}/verify-email?verification_token=${verifyEmailToken}"
                      style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px; padding: 14px 28px; border-radius: 6px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4);">
                     Verificar mi cuenta
                   </a>
@@ -108,11 +123,39 @@ export async function register(request, response) {
     </html>
   `
   })
+}
 
-  return response.status(201).send({
+/*
+Endpoint para reenviar el mail de verificacion:
+GET /api/auth/verify-email/:email/resend
+Recibe un email valido, regenera el token y reenvia el mail al usuario.
+*/
+export async function resendVerificationEmail(req, res) {
+  const { email } = req.params
+
+  if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+    throw new ServerError(
+      'Email is incorrect',
+      400
+    )
+  }
+
+  const user = await userRepository.getByEmail(email)
+
+  if (!user) {
+    throw new ServerError('User not found', 404)
+  }
+
+  if (user.emailVerificado) {
+    throw new ServerError('Account is already verified', 400)
+  }
+
+  await sendVerificationEmail(email)
+
+  return res.status(200).send({
     ok: true,
-    status: 201,
-    message: 'User registred succesfully!'
+    status: 200,
+    message: 'Verification email sent succesfully'
   })
 }
 
@@ -191,7 +234,13 @@ Los JWT son objetos de JS (JSON) pasados a string () con una firma
 */
 
 export async function verifyEmail(req, res) {
-  const { verifyEmailToken } = req.params
+  /*El token llega por querystring: /verify-email?verification_token=xxxxx */
+  const { verification_token: verifyEmailToken } = req.query
+
+  if (!verifyEmailToken) {
+    throw new ServerError('Verification token is required', 400)
+  }
+
   // Verificar el token -->
   const { email } = jwt.verify(verifyEmailToken, ENVIROMMENT.JWT_SECRET_KEY)
 
