@@ -34,23 +34,25 @@ export async function register(request, response) {
   }
 
   //Validar si el mail ya esta registrado
+  //Respuesta ambigua: no revelamos si el email ya esta registrado (user enumeration)
   const user_already_exist = await userRepository.getByEmail(email)
   if (user_already_exist) {
-    throw new ServerError(
-      'Email is already used',
-      400
-    )
+    //Si la cuenta existe y aun no esta verificada, reenviamos el mail; si ya esta verificada, no hacemos nada.
+    //En todos los casos la respuesta es identica.
+    if (!user_already_exist.emailVerificado) {
+      await sendVerificationEmail(email)
+    }
+  } else {
+    const passwordHash = await generateHash(password)
+    await userRepository.create(nombre, email, passwordHash)
+
+    await sendVerificationEmail(email)
   }
-
-  const passwordHash = await generateHash(password)
-  await userRepository.create(nombre, email, passwordHash)
-
-  await sendVerificationEmail(email)
 
   return response.status(201).send({
     ok: true,
     status: 201,
-    message: 'User registred succesfully!'
+    message: 'Se enviará un mail con los pasos para verificar tu cuenta, en caso de que esta sea real'
   })
 }
 
@@ -87,9 +89,20 @@ async function sendVerificationEmail(email) {
         <tr>
           <td align="center" style="padding: 40px 0;">
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
-              <!-- Header -->
+              <!-- Header: aubergine Slack -->
               <tr>
-                <td align="center" style="background-color: #4f46e5; padding: 30px 20px;">
+                <td align="center" style="background-color: #481A54; padding: 34px 20px 30px;">
+                  <!-- Logo trébol de 4 hojas (2x2 con border-radius) -->
+                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin: 0 auto 16px;">
+                    <tr>
+                      <td width="22" height="22" style="width: 22px; height: 22px; background-color: #36C5F0; border-radius: 50% 50% 0 50%;">&nbsp;</td>
+                      <td width="22" height="22" style="width: 22px; height: 22px; background-color: #2EB67D; border-radius: 50% 50% 50% 0;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                      <td width="22" height="22" style="width: 22px; height: 22px; background-color: #E01E5A; border-radius: 50% 0 50% 50%;">&nbsp;</td>
+                      <td width="22" height="22" style="width: 22px; height: 22px; background-color: #ECB22E; border-radius: 0 50% 50% 50%;">&nbsp;</td>
+                    </tr>
+                  </table>
                   <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">¡Bienvenido a la plataforma!</h1>
                 </td>
               </tr>
@@ -101,7 +114,7 @@ async function sendVerificationEmail(email) {
                   </p>
                   <!-- Botón CTA -->
                   <a href="${ENVIROMMENT.URL_FRONTEND}/verify-email?verification_token=${verifyEmailToken}"
-                     style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px; padding: 14px 28px; border-radius: 6px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4);">
+                     style="display: inline-block; background-color: #481A54; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px; padding: 14px 28px; border-radius: 6px; box-shadow: 0 2px 5px rgba(72, 26, 84, 0.4);">
                     Verificar mi cuenta
                   </a>
                   <p style="color: #777777; font-size: 13px; margin-top: 30px; line-height: 1.4;">
@@ -142,20 +155,16 @@ export async function resendVerificationEmail(req, res) {
 
   const user = await userRepository.getByEmail(email)
 
-  if (!user) {
-    throw new ServerError('User not found', 404)
+  //Respuesta ambigua: no revelamos si la cuenta existe o si ya esta verificada (user enumeration).
+  //Solo reenviamos el mail si la cuenta existe y esta pendiente de verificacion; la respuesta es identica en todos los casos.
+  if (user && !user.emailVerificado) {
+    await sendVerificationEmail(email)
   }
-
-  if (user.emailVerificado) {
-    throw new ServerError('Account is already verified', 400)
-  }
-
-  await sendVerificationEmail(email)
 
   return res.status(200).send({
     ok: true,
     status: 200,
-    message: 'Verification email sent succesfully'
+    message: 'Se enviará un mail con los pasos para verificar tu cuenta, en caso de que esta sea real'
   })
 }
 
@@ -191,13 +200,15 @@ export async function login(req, res, next) {
     }
 
     const user = await userRepository.getByEmail(email);
+    //Respuesta ambigua: mismo mensaje si el email no existe o si la password es incorrecta (user enumeration)
+    const invalidCredentialsError = new ServerError('Invalid credentials', 400);
     if (!user) {
-      throw new ServerError("User not found", 400);
+      throw invalidCredentialsError;
     }
 
     const compare = await compareHash(password, user.password);
     if (!compare) {
-      throw new ServerError('An error ocurred', 400);
+      throw invalidCredentialsError;
     }
 
     if (!user.emailVerificado) {
