@@ -90,3 +90,56 @@ export async function verifyEmail(verification_token) {
   }
   return response_body
 }
+
+/*
+Consulta a la API para solicitar el restablecimiento de contraseña.
+El backend envia un mail con el token solo si la cuenta existe.
+*/
+export async function forgotPassword(email) {
+  const response_http = await fetch(
+    API_URL + '/api/auth/forgot-password',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': "application/json"
+      },
+      body: JSON.stringify({
+        email: email
+      })
+    }
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+  return response_body
+}
+
+/*
+Consulta a la API para restablecer la contraseña con el token
+que llega por querystring desde el link del correo electronico
+*/
+export async function resetPassword(reset_token, password) {
+  const response_http = await fetch(
+    API_URL + '/api/auth/reset-password',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': "application/json"
+      },
+      body: JSON.stringify({
+        reset_token: reset_token,
+        password: password
+      })
+    }
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+  return response_body
+}

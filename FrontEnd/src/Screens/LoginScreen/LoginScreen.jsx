@@ -103,6 +103,12 @@ function LoginScreen() {
             Reenviar
           </Link>
         </p>
+        <p className="login-card__register-hint">
+          Olvidaste tu contraseña?{' '}
+          <Link className="login-card__register-link" to="/forgot-password">
+            Olvide mi contraseña
+          </Link>
+        </p>
         {errorMessage && !loading && (
           <Alert type="error" message={errorMessage} />
         )}
