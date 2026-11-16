@@ -60,10 +60,16 @@ export async function register(nombre, email, password) {
 /*
 Consulta a la API para reenviar el mail de verificacion
 de la cuenta a un email registrado y aun no verificado
+POST con email por body (antes era GET con el email en la URL)
 */
 export async function resendEmailVerification(email) {
   const response_http = await fetch(
-    API_URL + '/api/auth/verify-email/' + encodeURIComponent(email) + '/resend'
+    API_URL + '/api/auth/resend-verification-email',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    }
   )
 
   const response_body = await response_http.json()

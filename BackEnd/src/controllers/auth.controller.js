@@ -25,8 +25,8 @@ El body puede ser de distintos tipos de dato:
 
 export async function register(request, response) {
 
-  console.log("[REGISTER]", request.body)
-  const { nombre, email, password } = request.body
+  //El "|| {}" evita que explote si el request llega sin body (Express 5 deja req.body como undefined)
+  const { nombre, email, password } = request.body || {}
 
   if (!nombre || !email || !password) {
     throw new ServerError(
@@ -54,11 +54,11 @@ export async function register(request, response) {
 
 /*
 Endpoint para reenviar el mail de verificacion:
-GET /api/auth/verify-email/:email/resend
-Recibe un email valido y delega el reenvio a la capa de servicios.
+POST /api/auth/resend-verification-email
+Recibe un email valido por body y delega el reenvio a la capa de servicios.
 */
 export async function resendVerificationEmail(req, res) {
-  const { email } = req.params
+  const { email } = req.body || {}
 
   if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
     throw new ServerError(
@@ -78,7 +78,7 @@ export async function resendVerificationEmail(req, res) {
 
 export async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       throw new ServerError('email and password are required', 400);
@@ -129,7 +129,7 @@ Recibe un email por body y delega el envio del mail con el token a la capa de se
 Respuesta ambigua: no revelamos si el email esta registrado (user enumeration).
 */
 export async function forgotPassword(req, res) {
-  const { email } = req.body
+  const { email } = req.body || {}
 
   if (!email) {
     throw new ServerError('Email is required', 400)
@@ -155,7 +155,7 @@ Recibe por body el token que llego por mail (querystring del link) y la nueva pa
 Delega la validacion del token y el guardado de la password a la capa de servicios.
 */
 export async function resetPassword(req, res) {
-  const { reset_token, password } = req.body
+  const { reset_token, password } = req.body || {}
 
   if (!reset_token || !password) {
     throw new ServerError('Reset token and password are required', 400)

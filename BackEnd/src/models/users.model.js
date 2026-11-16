@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      //Nunca traemos el hash en las queries por defecto. Para leerlo (solo login)
+      //hay que pedirlo explicitamente con .select('+password')
+      select: false
     },
     fecha_creacion: {
       type: Date,

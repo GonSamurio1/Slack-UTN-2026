@@ -11,8 +11,9 @@ authRouter.post('/login', login)
 
 authRouter.get('/verify-email', verifyEmail)
 
-/*Reenvio del mail de verificacion para un email registrado y no verificado */
-authRouter.get('/verify-email/:email/resend', resendVerificationEmail)
+/*Reenvio del mail de verificacion para un email registrado y no verificado.
+  POST con email por body (operacion con efectos secundarios, no debe ser GET) */
+authRouter.post('/resend-verification-email', resendVerificationEmail)
 
 /*Solicitud de restablecimiento de contraseña: envia un mail con el token si la cuenta existe */
 authRouter.post('/forgot-password', forgotPassword)

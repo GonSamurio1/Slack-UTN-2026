@@ -33,6 +33,13 @@ class UserRepository {
     console.log(result)
     return result
   }
+
+  //Igual que getByEmail pero pidiendo tambien el hash de la password.
+  //Usar SOLO cuando se necesita comparar la contraseña (login), nunca para exponer el user.
+  async getByEmailWithPassword(email) {
+    const result = await User.findOne({ email: email }).select('+password')
+    return result
+  }
   // FILTRAR POR ID -->
   async getById(userId) {
     const result = await User.findById(userId)

@@ -95,7 +95,8 @@ valida que la cuenta este verificada y crea el token firmado de sesion (JWT).
 Devuelve el authToken, o lanza ServerError si algo falla.
 */
 export async function login(email, password) {
-  const user = await userRepository.getByEmail(email)
+  //Para el login SI necesitamos el hash, lo pedimos explicitamente
+  const user = await userRepository.getByEmailWithPassword(email)
 
   //Respuesta ambigua: mismo mensaje si el email no existe o si la password es incorrecta (user enumeration)
   const invalidCredentialsError = new ServerError('Invalid credentials', 400);
@@ -122,7 +123,12 @@ export async function login(email, password) {
       name: user.nombre,
       email: user.email
     },
-    ENVIROMMENT.JWT_SECRET_KEY // FIRMAMOS CON ESTO
+    ENVIROMMENT.JWT_SECRET_KEY, // FIRMAMOS CON ESTO
+    {
+      //La sesion vence a los 7 dias: limita el daño si el token se filtra.
+      //Cuando expire, la API respondera 401 y el frontend debera mandar al usuario al login.
+      expiresIn: '7d'
+    }
   );
 
   return authToken
