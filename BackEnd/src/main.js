@@ -10,6 +10,8 @@ import errorHandlerMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.router.js";
 import workspaceRouter from "./routes/workspace.router.js";
 import userRouter from "./routes/user.router.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./docs/openapi.config.js";
 import ENVIROMMENT from './config/enviromment.config.js';
 
 const app = express();
@@ -36,6 +38,14 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/workspace', workspaceRouter);
 
+// Documentacion interactiva (Swagger UI) -->
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Spec cruda en JSON (para consumir desde otras herramientas)
+app.get('/api/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 app.use(errorHandlerMiddleware);
 
 // Para desarrollo local se ejecuta el app.listen
@@ -48,3 +58,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Requerido para Vercel Serverless Functions
 export default app;
+
+/*
+Documentacion con Swagger UI: implementada en /api/docs (spec en src/docs/openapi.config.js)
+Logger : Sirve para registrar el flujo de consultas del servidor (no vamos a registrar el body, si se quisiera pdoran hcaerlo pero encriptanod el body)
+WhiteList/BlackList
+Rate Limit
+Manejo de arcivos
+API KEY
+*/
