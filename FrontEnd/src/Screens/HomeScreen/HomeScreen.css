@@ -1,0 +1,81 @@
+/*
+  Layout de la pantalla principal: panel lateral claro con la pestaña
+  "Espacios de trabajo" activa y la lista debajo, como la referencia.
+*/
+.home-screen {
+  min-height: 100vh;
+  background: #F6F5F7;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.home-screen__panel {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+/* Pestaña superior con subrayado violeta */
+.home-screen__tabs {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.home-screen__tab {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 10px 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  /* Sube el tab para que su subrayado quede pegado (superpuesto) a la
+     linea inferior del panel, como en Slack */
+  margin-bottom: -1px;
+  position: relative;
+}
+
+.home-screen__tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary); /* Violeta Slack #481A54 */
+  z-index: 1;
+}
+
+.home-screen__logo {
+  display: block;
+}
+
+.home-screen__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 12px 0 20px;
+}
+
+.home-screen__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-screen__subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+@media (max-width: 640px) {
+  .home-screen__panel {
+    max-width: 100%;
+    border-right: none;
+  }
+}

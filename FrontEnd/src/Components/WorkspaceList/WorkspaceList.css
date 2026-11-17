@@ -1,0 +1,242 @@
+/*
+  Estilos de la lista de espacios de trabajo, inspirados en la referencia
+  de Slack: tarjeta blanca, item con imagen circular, nombre y fila de
+  mini-avatares de miembros con el conteo al costado.
+*/
+.workspace-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Item de la lista */
+.workspace-list__item {
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.workspace-list__item:hover {
+  background-color: var(--primary-soft);
+}
+
+.workspace-list__link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Imagen circular del workspace */
+.workspace-list__image {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(29, 28, 29, 0.15);
+}
+
+/* Nombre y miembros */
+.workspace-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workspace-list__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fila de avatares + conteo */
+.workspace-list__members {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-list__avatar-stack {
+  display: flex;
+}
+
+.workspace-list__member-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  border: 2px solid var(--surface);
+  margin-left: -6px;
+}
+
+/* El primer avatar no necesita el margen negativo */
+.workspace-list__avatar-stack .workspace-list__member-avatar:first-child {
+  margin-left: 0;
+}
+
+.workspace-list__member-avatar--more {
+  background-color: var(--text-muted);
+}
+
+.workspace-list__member-count {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* Flecha a la derecha del item: indica que se puede entrar */
+.workspace-list__chevron {
+  margin-left: auto;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.workspace-list__link:hover .workspace-list__chevron {
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+/* Estados */
+.workspace-list--loading {
+  align-items: center;
+  padding: 24px 12px;
+  color: var(--text-muted);
+}
+
+.workspace-list--loading p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.workspace-list__loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: workspace-list-spin 0.8s linear infinite;
+}
+
+@keyframes workspace-list-spin {
+  to { transform: rotate(360deg); }
+}
+
+.workspace-list__error {
+  color: var(--error);
+  font-size: 14px;
+}
+
+.workspace-list__retry {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.workspace-list__retry:hover {
+  background: var(--primary-soft);
+}
+
+.workspace-list__empty {
+  margin: 0;
+  padding: 16px 12px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/*
+  Seccion para crear un espacio de trabajo: boton de acceso
+  con "+" y formulario desplegable debajo de la lista.
+*/
+.workspace-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-list__create {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.workspace-list__create-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.workspace-list__create-toggle:hover {
+  background-color: var(--primary-soft);
+}
+
+.workspace-list__create-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.workspace-list__create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 12px;
+}
+
+.workspace-list__create-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Hint para cambiar de cuenta cuando no aparece el workspace */
+.workspace-list__hint {
+  margin: 0;
+  padding: 0 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.workspace-list__hint-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.workspace-list__hint-link:hover {
+  text-decoration: underline;
+}

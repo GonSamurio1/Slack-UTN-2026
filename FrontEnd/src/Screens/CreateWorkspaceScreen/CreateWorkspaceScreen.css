@@ -1,0 +1,132 @@
+/*
+  Layout de la pantalla para crear un espacio de trabajo.
+  Reutiliza el patron visual del registro: curvas violetas de fondo
+  estilo Slack, tarjeta blanca centrada y componentes de formulario.
+*/
+.create-workspace-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  padding: 24px;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+  Curvas violetas de fondo estilo Slack: dos elipses gigantes
+  recortadas por la pantalla, con borde suave para lograr el
+  degradado entre blanco y violeta (#481A54).
+*/
+.create-workspace-screen::before,
+.create-workspace-screen::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Curva superior */
+.create-workspace-screen::before {
+  width: 170vw;
+  height: 70vh;
+  top: calc(-70vh + 140px);
+  left: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* Curva inferior */
+.create-workspace-screen::after {
+  width: 170vw;
+  height: 70vh;
+  bottom: calc(-70vh + 140px);
+  right: -35vw;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--primary) 0%,
+    var(--primary) 72%,
+    rgba(72, 26, 84, 0) 100%
+  );
+}
+
+/* El contenido siempre por encima de las curvas */
+.create-workspace-intro,
+.create-workspace-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Bloque de titulo y descripcion, fuera de la tarjeta */
+.create-workspace-intro {
+  text-align: center;
+  max-width: 600px;
+}
+
+.create-workspace-intro__title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.create-workspace-intro__subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.create-workspace-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 34px 44px;
+}
+
+.create-workspace-card__logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.create-workspace-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Adaptacion a dispositivos pequenos */
+@media (max-width: 480px) {
+  .create-workspace-screen {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .create-workspace-screen::before {
+    top: calc(-70vh + 90px);
+  }
+
+  .create-workspace-screen::after {
+    bottom: calc(-70vh + 90px);
+  }
+
+  .create-workspace-card {
+    padding: 28px 20px;
+  }
+
+  .create-workspace-intro__title {
+    font-size: 26px;
+  }
+
+  .create-workspace-intro__subtitle {
+    font-size: 15px;
+  }
+}

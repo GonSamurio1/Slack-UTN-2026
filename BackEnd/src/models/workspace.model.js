@@ -8,7 +8,7 @@ const workSpaceSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      maxlength: 200,
+      maxlength: 1000,
     },
     fecha_creacion: {
       type: Date,
