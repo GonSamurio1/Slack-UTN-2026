@@ -23,6 +23,10 @@
 .home-screen__tabs {
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .home-screen__tab {

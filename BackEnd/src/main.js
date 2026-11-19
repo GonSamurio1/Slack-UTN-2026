@@ -10,6 +10,7 @@ import errorHandlerMiddleware from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.router.js";
 import workspaceRouter from "./routes/workspace.router.js";
 import userRouter from "./routes/user.router.js";
+import channelRouter from "./routes/channel.router.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./docs/openapi.config.js";
 import ENVIROMMENT from './config/enviromment.config.js';
@@ -37,6 +38,7 @@ app.use(async (req, res, next) => {
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/workspace', workspaceRouter);
+app.use('/api/workspace', channelRouter);
 
 // Documentacion interactiva (Swagger UI) -->
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

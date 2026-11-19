@@ -16,8 +16,6 @@ function workspaceMiddleware(valid_roles = []) {
     const workspace_selected = await workspaceRepository.getByID(workspace_id)
 
     const membership = await memberRepository.getMembershipByUserAndWorkspace(req.user.id, workspace_id)
-    console.log('[WorkspaceMiddleware]:', membership, workspace_id, req.user)
-
 
     if (!workspace_selected) {
       throw new ServerError('Workspace no encontrado', 404)

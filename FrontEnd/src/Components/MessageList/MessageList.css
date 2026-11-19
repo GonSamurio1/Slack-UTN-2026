@@ -1,0 +1,221 @@
+/*
+Lista de mensajes del canal: area principal de ChannelScreen.
+Reutiliza la paleta global del proyecto (globals.css).
+*/
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 24px;
+  overflow-y: auto;
+}
+
+.message-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ===== Item de mensaje ===== */
+
+.message-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+/* Al pasar el mouse aparecen las acciones de los mensajes propios */
+.message-list__actions {
+  display: none;
+  gap: 4px;
+  position: absolute;
+  right: 8px;
+  top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  box-shadow: var(--shadow-card);
+}
+
+.message-list__item--own:hover .message-list__actions {
+  display: flex;
+}
+
+.message-list__avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.message-list__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.message-list__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.message-list__author {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.message-list__you {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.message-list__time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.message-list__edited {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.message-list__content {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== Acciones de mensaje propio ===== */
+
+.message-list__action {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.message-list__action:hover:not(:disabled) {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.message-list__action--danger:hover:not(:disabled) {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.message-list__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Edicion inline ===== */
+
+.message-list__edit {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-list__edit-input {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  min-height: 60px;
+}
+
+.message-list__edit-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.message-list__edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.message-list__action--save {
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.message-list__action--save:hover:not(:disabled) {
+  background: var(--primary-dark);
+  color: #FFFFFF;
+}
+
+/* ===== Estados ===== */
+
+.message-list--loading {
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.message-list--loading p {
+  margin: 0;
+}
+
+.message-list__loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: message-list-spin 0.7s linear infinite;
+}
+
+@keyframes message-list-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message-list__retry {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.message-list__empty {
+  margin: auto;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}

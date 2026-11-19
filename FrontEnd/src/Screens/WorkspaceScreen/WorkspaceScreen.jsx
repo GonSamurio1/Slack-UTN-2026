@@ -1,52 +1,106 @@
-import { useEffect } from 'react'
-import { WorkspaceProvider, useWorkspaceContext } from '../../Contexts/WorkspaceContext'
+import { Link } from 'react-router-dom'
+import { WorkspaceProvider, useWorkspace } from '../../Contexts/WorkspaceContext'
+import ChannelList from '../../Components/ChannelList/ChannelList'
+import MemberList from '../../Components/MemberList/MemberList'
+import AddMember from '../../Components/AddMember/AddMember'
+import Alert from '../../Components/Alert/Alert'
+import LogoutButton from '../../Components/LogoutButton/LogoutButton'
+import './WorkspaceScreen.css'
 
 /*
-Pantalla del workspace: por ahora vacia. El contenido futuro (canales,
-mensajes, etc.) consume los datos del workspace desde el contexto.
+Pantalla del workspace (/workspace/:workspace_id).
+
+Layout (sigue el prototipo de referencias):
+  - Header: nombre y descripcion del espacio de trabajo (useWorkspace)
+  - Sidebar: ChannelList (useChannelsList), MemberList (useMemberList) y AddMember
+  - Area principal: la vista del canal seleccionado
+
+Los datos vienen del WorkspaceContext (montado por el provider de abajo),
+que consulta las tres APIs cuando cambia el workspace_id de la URL.
 */
 
 function WorkspaceScreenContent() {
+
   const {
     workspace_loading,
     workspace_response,
     workspace_error,
-    members_loading,
-    members_response,
-    members_error
-  } = useWorkspaceContext()
+    reloadWorkspace
+  } = useWorkspace()
 
-  // Log de estados de carga y respuestas de ambas APIs
-  useEffect(
-    () => {
-      console.log('[WorkspaceScreen] estado de carga ->', {
-        workspace_loading: workspace_loading,
-        members_loading: members_loading
-      })
-    },
-    [workspace_loading, members_loading]
+  if (workspace_loading) {
+    return (
+      <div className="workspace-screen workspace-screen--loading">
+        <span className="workspace-screen__loader" />
+        <p>Cargando espacio de trabajo...</p>
+      </div>
+    )
+  }
+
+  if (workspace_error) {
+    return (
+      <div className="workspace-screen workspace-screen--error">
+        <Alert type="error" message={`Error : ${workspace_error}`} />
+        <div className="workspace-screen__error-actions">
+          <button className="workspace-screen__retry" onClick={reloadWorkspace}>Recargar</button>
+          <Link className="workspace-screen__back-link" to="/">Volver al inicio</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!workspace_response) {
+    return (
+      <div className="workspace-screen workspace-screen--error">
+        <Alert type="error" message="Error : Ocurrio un problema al obtener el espacio de trabajo" />
+        <div className="workspace-screen__error-actions">
+          <button className="workspace-screen__retry" onClick={reloadWorkspace}>Recargar</button>
+          <Link className="workspace-screen__back-link" to="/">Volver al inicio</Link>
+        </div>
+      </div>
+    )
+  }
+
+  const workspace = workspace_response.data.workspace
+
+  return (
+    <div className="workspace-screen">
+      {/* Header: nombre y descripcion del workspace */}
+      <header className="workspace-screen__header">
+        <Link className="workspace-screen__back" to="/">
+          <span className="workspace-screen__back-arrow" aria-hidden="true">←</span>
+          Inicio
+        </Link>
+        <div className="workspace-screen__header-info">
+          <h1 className="workspace-screen__name">{workspace.name}</h1>
+          {workspace.description && (
+            <p className="workspace-screen__description">{workspace.description}</p>
+          )}
+        </div>
+        <div className="workspace-screen__header-actions">
+          <LogoutButton />
+        </div>
+      </header>
+
+      <div className="workspace-screen__layout">
+        {/* Sidebar: canales, miembros y Add member */}
+        <aside className="workspace-screen__sidebar">
+          <ChannelList />
+
+          <MemberList />
+
+          <AddMember />
+        </aside>
+
+        {/* Area principal: vista del canal seleccionado */}
+        <main className="workspace-screen__main">
+          <div className="workspace-screen__placeholder">
+            <p>Selecciona un canal de la izquierda para ver sus mensajes.</p>
+          </div>
+        </main>
+      </div>
+    </div>
   )
-
-  useEffect(
-    () => {
-      if (!workspace_loading) {
-        console.log('[WorkspaceScreen] respuesta de workspace ->', workspace_response ?? workspace_error)
-      }
-    },
-    [workspace_loading, workspace_response, workspace_error]
-  )
-
-  useEffect(
-    () => {
-      if (!members_loading) {
-        console.log('[WorkspaceScreen] respuesta de members ->', members_response ?? members_error)
-      }
-    },
-    [members_loading, members_response, members_error]
-  )
-
-  // Pantalla vacia por ahora
-  return null
 }
 
 export default function WorkspaceScreen() {

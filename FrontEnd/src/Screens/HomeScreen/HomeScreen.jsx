@@ -1,5 +1,6 @@
 import WorkspaceList from '../../Components/WorkspaceList/WorkspaceList';
 import Logo from '../../Components/Logo/Logo';
+import LogoutButton from '../../Components/LogoutButton/LogoutButton';
 import './HomeScreen.css';
 
 /*
@@ -15,6 +16,7 @@ function HomeScreen() {
           <button type="button" className="home-screen__tab home-screen__tab--active">
             Espacios de trabajo
           </button>
+          <LogoutButton />
         </nav>
         <Logo size={40} className="home-screen__logo" />
         <h1 className="home-screen__title">Bienvenido a Slack!</h1>

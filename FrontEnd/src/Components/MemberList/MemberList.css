@@ -1,0 +1,131 @@
+/*
+Lista de miembros del workspace: columna izquierda, debajo de los canales.
+Reutiliza la paleta global del proyecto (globals.css).
+*/
+
+.member-list__title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.member-list__count {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.member-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.member-list__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.member-list__item:hover {
+  background: var(--primary-soft);
+}
+
+/* Avatar con la inicial del miembro (misma paleta que WorkspaceList) */
+.member-list__avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member-list__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.member-list__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-list__role {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.member-list__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Estado de carga (spinner CSS puro, mismo patron que WorkspaceList) */
+.member-list--loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.member-list--loading p {
+  margin: 0;
+}
+
+.member-list__loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: member-list-spin 0.7s linear infinite;
+}
+
+@keyframes member-list-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Estado de error */
+.member-list__error {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--error);
+}
+
+.member-list__retry {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.member-list__retry:hover {
+  color: var(--primary-dark);
+}

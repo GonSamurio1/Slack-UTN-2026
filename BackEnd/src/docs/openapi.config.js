@@ -53,7 +53,8 @@ a MongoDB responde \`503\`.
   tags: [
     { name: 'Auth', description: 'Autenticación y gestión de cuentas (públicos, sin token)' },
     { name: 'Users', description: 'Consulta de usuarios registrados (requieren token JWT)' },
-    { name: 'Workspaces', description: 'Espacios de trabajo y gestión de miembros (requieren token JWT)' }
+    { name: 'Workspaces', description: 'Espacios de trabajo y gestión de miembros (requieren token JWT)' },
+    { name: 'Channels', description: 'Canales de un workspace: CRUD completo (requieren token JWT)' }
   ],
 
   components: {
@@ -166,6 +167,51 @@ a MongoDB responde \`503\`.
         }
       },
 
+      // Canal de un workspace
+      Channel: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '665f1c9e2f4a3b0012345681' },
+          workspace_id: { type: 'string', description: 'ObjectId del workspace', example: '665f1c9e2f4a3b0012345679' },
+          nombre: { type: 'string', example: 'general' },
+          descripcion: { type: 'string', maxLength: 200, example: 'Canal para charlas generales del equipo' },
+          fecha_creacion: { type: 'string', format: 'date-time' }
+        }
+      },
+
+      // Mensaje de un canal
+      ChannelMessage: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '665f1c9e2f4a3b0012345682' },
+          contenido: { type: 'string', maxLength: 2000, example: 'Hola equipo, bienvenidos al canal' },
+          channel_id: { type: 'string', description: 'ObjectId del canal', example: '665f1c9e2f4a3b0012345681' },
+          emisor_id: { type: 'string', description: 'ObjectId del usuario que envió el mensaje', example: '665f1c9e2f4a3b0012345678' },
+          fecha_creacion: { type: 'string', format: 'date-time' },
+          editado: { type: 'boolean', example: false }
+        }
+      },
+
+      // Mensaje de un canal con datos del emisor poblados (GET messages)
+      ChannelMessageWithEmisor: {
+        type: 'object',
+        properties: {
+          _id: { type: 'string', example: '665f1c9e2f4a3b0012345682' },
+          contenido: { type: 'string', maxLength: 2000, example: 'Hola equipo, bienvenidos al canal' },
+          channel_id: { type: 'string', description: 'ObjectId del canal', example: '665f1c9e2f4a3b0012345681' },
+          emisor_id: {
+            type: 'object',
+            properties: {
+              _id: { type: 'string', example: '665f1c9e2f4a3b0012345678' },
+              nombre: { type: 'string', example: 'Gonza' },
+              email: { type: 'string', format: 'email', example: 'gonza@mail.com' }
+            }
+          },
+          fecha_creacion: { type: 'string', format: 'date-time' },
+          editado: { type: 'boolean', example: false }
+        }
+      },
+
       // data de POST /api/auth/login
       AuthTokenData: {
         type: 'object',
@@ -220,7 +266,8 @@ const swaggerSpec = swaggerJsdoc({
   apis: [
     path.resolve(__dirname, '../routes/auth.router.js').replace(/\\/g, '/'),
     path.resolve(__dirname, '../routes/user.router.js').replace(/\\/g, '/'),
-    path.resolve(__dirname, '../routes/workspace.router.js').replace(/\\/g, '/')
+    path.resolve(__dirname, '../routes/workspace.router.js').replace(/\\/g, '/'),
+    path.resolve(__dirname, '../routes/channel.router.js').replace(/\\/g, '/')
   ]
 })
 

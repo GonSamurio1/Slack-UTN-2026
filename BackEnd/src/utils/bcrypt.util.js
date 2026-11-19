@@ -8,6 +8,5 @@ export async function generateHash(data) {
 export async function compareHash(data, hash) {
   //nos permite saber si un hash pertenece a cierto dato
   const result = await bcrypt.compare(data, hash)
-  console.log("Resultado de la comparacion:", result)
   return result
 }

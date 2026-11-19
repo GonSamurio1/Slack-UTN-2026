@@ -24,7 +24,7 @@ class WorkspaceRepository {
     const result = await Workspace.findByIdAndUpdate(
       workspaceId,
       updateData,
-      { new: true }
+      { returnDocument: 'after' }
     )
     return result
   }

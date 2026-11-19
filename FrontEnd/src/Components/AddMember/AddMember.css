@@ -1,0 +1,74 @@
+/*
+Formulario inline de "Add member" en el sidebar del workspace.
+Reutiliza la paleta global y el look de los inputs del proyecto.
+*/
+
+.add-member {
+  margin-top: 24px;
+}
+
+.add-member--open {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 6px #0000001a;
+}
+
+.add-member__title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.add-member__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.add-member__input {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.add-member__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+.add-member__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.add-member__cancel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.add-member__cancel:hover:not(:disabled) {
+  color: var(--primary);
+}
+
+.add-member__cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

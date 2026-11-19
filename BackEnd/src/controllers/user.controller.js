@@ -15,7 +15,7 @@ export async function getUsers(req, res) {
 }
 
 export async function getUserById(req, res) {
-  const user_id = req.params.user_id
+  const user_id = req.params.userId
   const user = await userRepository.getById(user_id)
 
   if (!user) {

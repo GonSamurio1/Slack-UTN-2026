@@ -9,12 +9,14 @@ import "./Button.css"
     - type: "submit" | "button"
     - loading: muestra spinner y "Cargando..."
     - disabled: deshabilita el boton
+    - onClick: funcion a ejecutar al hacer clic (opcional)
 */
 export default function Button({
   children,
   type = "button",
   loading = false,
-  disabled = false
+  disabled = false,
+  onClick
 }) {
   const isDisabled = disabled || loading
 
@@ -23,6 +25,7 @@ export default function Button({
       className="button button--primary"
       type={type}
       disabled={isDisabled}
+      onClick={onClick}
     >
       {loading && <span className="button__spinner" aria-hidden="true"></span>}
       {loading ? "Cargando..." : children}

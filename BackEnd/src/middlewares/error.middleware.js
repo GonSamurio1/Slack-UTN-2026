@@ -16,7 +16,8 @@ function errorHandlerMiddleware(error, req, res, next) {
   }
   //Es un error inesperado
   else {
-    console.log('[Middleware de Error]:', error)
+    console.error('[Middleware de Error]:', error.message)
+    if (error.stack) console.error(error.stack)
     //Error generico
     return res.status(500).json(
       {

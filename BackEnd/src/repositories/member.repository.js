@@ -6,7 +6,8 @@ class MemberRepository {
       id_usuario: idUser,
       espacio_trabajo: workspaceId,
       rol: role,
-      activo : true
+      // El alta es directa (no hay invitacion pendiente que aceptar)
+      invitacion_aceptada: true
     });
   }
 
@@ -19,7 +20,7 @@ class MemberRepository {
       id,
       { rol: role },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true
       }
     );
@@ -47,7 +48,6 @@ class MemberRepository {
   async getAllMembershipsByWorkspaceId(workspaceId) {
     const result = await Member.find({ espacio_trabajo: workspaceId })
       .populate('id_usuario', 'nombre email')
-    console.log(result)
     return result
 
   }

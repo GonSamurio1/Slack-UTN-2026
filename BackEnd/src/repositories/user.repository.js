@@ -18,19 +18,16 @@ class UserRepository {
   // ACTUALIZAR USER POR ID -->
   async softUpdateUserById(userId) {
     const result = await User.findByIdAndUpdate(userId, { activo: false })
-    console.log(result)
     return result
   }
   //ELIMINAR USER POR ID -->
   async deleteUser(userId) {
     const result = await User.findByIdAndDelete(userId)
-    console.log(result)
     return result
   }
   // DEVUELVE UN OBJETO O NULL -->
   async getByEmail(email) {
     const result = await User.findOne({ email: email })
-    console.log(result)
     return result
   }
 
@@ -56,7 +53,6 @@ class UserRepository {
     })
       .limit(5) //Se le da un limite, maximo hasta 5 usuarios con el mismo termino
 
-    console.log(result)
     return result
   }
   // FILTRA USUARIOS POR SU FECHA DE CRACION (se puede poner un rango de x fecha hasta x fecha) -->
@@ -68,13 +64,11 @@ class UserRepository {
         $lt: new Date(maxDate) // Establece una fecha maxima
       }
     })
-    console.log(result)
     return result
   }
   // MUESTRA USUARIOS EN LA DB -->
   async getUsers() {
     const result = await User.find()
-    console.log(result)
     return result
   }
 

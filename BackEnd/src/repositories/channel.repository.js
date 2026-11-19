@@ -18,7 +18,12 @@ class ChannelRepository {
   }
 
   async updateById(channelId, nombre, descripcion) {
-    const result = await Channel.findByIdAndUpdate(channelId, { nombre, descripcion }, { new: true })
+    const result = await Channel.findByIdAndUpdate(channelId, { nombre, descripcion }, { returnDocument: 'after' })
+    return result
+  }
+
+  async getChannelById(channelId, workspace_id) {
+    const result = await Channel.findOne({ _id: channelId, workspace_id })
     return result
   }
 

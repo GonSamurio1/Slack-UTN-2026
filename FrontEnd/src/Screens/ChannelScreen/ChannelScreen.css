@@ -1,0 +1,203 @@
+/*
+Pantalla del canal: header + lista de mensajes scrolleable + barra de envio.
+Reutiliza la paleta global del proyecto (globals.css).
+*/
+
+.channel-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+}
+
+/* ===== Estado de carga completa ===== */
+
+.channel-screen--loading {
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.channel-screen--loading p {
+  margin: 0;
+}
+
+.channel-screen__loader {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: channel-screen-spin 0.7s linear infinite;
+}
+
+@keyframes channel-screen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Estado de error completa ===== */
+
+.channel-screen--error {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.channel-screen__error-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.channel-screen__retry {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.channel-screen__retry:hover {
+  color: var(--primary-dark);
+}
+
+/* ===== Header ===== */
+
+.channel-screen__header {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.channel-screen__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.channel-screen__back:hover {
+  color: var(--primary);
+}
+
+.channel-screen__back-arrow {
+  font-size: 15px;
+}
+
+.channel-screen__header-info {
+  min-width: 0;
+}
+
+.channel-screen__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.channel-screen__hash {
+  color: var(--text-muted);
+}
+
+.channel-screen__description {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Area de mensajes ===== */
+
+.channel-screen__messages {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La lista llena el area y scrollea dentro */
+.channel-screen__messages .message-list {
+  flex: 1;
+}
+
+/* ===== Barra de envio ===== */
+
+.message-form {
+  flex-shrink: 0;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--border);
+  background: #FAF9FA;
+}
+
+.message-form__row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.message-form__input {
+  flex: 1;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.message-form__input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.message-form__input::placeholder {
+  color: var(--text-muted);
+}
+
+/* El boton de envio no ocupa todo el ancho como en los formularios */
+.message-form .button.button--primary {
+  width: auto;
+  padding: 12px 24px;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 640px) {
+  .channel-screen__header,
+  .message-form {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .message-list {
+    padding: 12px 14px;
+  }
+
+  .message-form__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .message-form .button {
+    width: 100%;
+  }
+}

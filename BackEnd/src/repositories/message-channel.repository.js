@@ -24,13 +24,19 @@ class MessageChannelRepository {
       (
         messageId,
         { contenido, editado: true },
-        { new: true }
+        { returnDocument: 'after' }
       )
+    return result
+  }
+
+  async getMessageById(messageId, channel_id) {
+    const result = await MessageChannel.findOne({ _id: messageId, channel_id })
     return result
   }
 
   async getAllMessagesByChannelId(channel_id) {
     const result = await MessageChannel.find({ channel_id })
+      .sort({ fecha_creacion: 1 })
       .populate(
         'emisor_id',
         'nombre email'

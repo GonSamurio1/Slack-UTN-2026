@@ -1,7 +1,7 @@
 import express from 'express'
 
 // Import funciones de controllers -->
-import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, workspaceMemberesList } from '../controllers/workspace.controller.js'
+import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, workspaceMemberesList, addMember } from '../controllers/workspace.controller.js'
 
 // Import Middlewares -->
 import authMiddleware from '../middlewares/auth.middleware.js'
@@ -131,6 +131,111 @@ workspaceRouter.post('/', authMiddleware, createWorkspace);
  *         $ref: '#/components/responses/ServiceUnavailable503'
  */
 workspaceRouter.get('/', authMiddleware, getUserWorkspaces);
+
+/**
+ * @openapi
+ * /api/workspace/{workspace_id}/members:
+ *   post:
+ *     tags: [Workspaces]
+ *     summary: Agrega un miembro existente al workspace
+ *     description: |
+ *       Agrega al workspace un usuario ya registrado, identificado por su email.
+ *       La membresia queda activa al instante (no hay invitacion por mail).
+ *       Solo **owner** y **admin**. Los roles permitidos son `admin` y `user`.
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: workspace_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '665f1c9e2f4a3b0012345679'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: 'companero@mail.com'
+ *               rol:
+ *                 type: string
+ *                 enum: [admin, user]
+ *                 default: user
+ *                 example: user
+ *     responses:
+ *       201:
+ *         description: Miembro agregado correctamente (devuelve la membresia creada)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       example: 'Miembro agregado correctamente'
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         member:
+ *                           $ref: '#/components/schemas/Member'
+ *       400:
+ *         description: Header Authorization ausente, email faltante o invalido, rol invalido, o el usuario ya es miembro
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               HeaderAusente:
+ *                 value: { ok: false, status: 400, message: 'Auth header is required' }
+ *               EmailFaltante:
+ *                 value: { ok: false, status: 400, message: 'El email del usuario es obligatorio' }
+ *               EmailInvalido:
+ *                 value: { ok: false, status: 400, message: 'El email no tiene un formato valido' }
+ *               RolInvalido:
+ *                 value: { ok: false, status: 400, message: 'Rol invalido para ejecutar esta accion' }
+ *               YaEsMiembro:
+ *                 value: { ok: false, status: 400, message: 'El usuario ya pertenece a este espacio de trabajo' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized401'
+ *       403:
+ *         description: No es miembro, o su rol no alcanza (se requiere owner o admin)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               NoMiembro:
+ *                 value: { ok: false, status: 403, message: 'No pertences a este espacio de trabajo' }
+ *               RolInsuficiente:
+ *                 value: { ok: false, status: 403, message: 'No tenes permisos suficientes para hacer esta operacion' }
+ *       404:
+ *         description: Workspace no encontrado, o no existe un usuario con ese email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               WorkspaceInexistente:
+ *                 value: { ok: false, status: 404, message: 'Workspace no encontrado' }
+ *               UsuarioInexistente:
+ *                 value: { ok: false, status: 404, message: 'Usuario no encontrado' }
+ *       500:
+ *         description: Error inesperado. Incluye workspace_id con formato invalido (error de cast de Mongo)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 500, message: 'Internal server error' }
+ *       503:
+ *         $ref: '#/components/responses/ServiceUnavailable503'
+ */
+workspaceRouter.post('/:workspace_id/members', authMiddleware, workspaceMiddleware(['owner', 'admin']), addMember)
 
 /**
  * @openapi
@@ -531,10 +636,9 @@ workspaceRouter.delete('/:workspace_id', authMiddleware, workspaceMiddleware(['o
  */
 workspaceRouter.delete('/:workspace_id/members/:member_id', authMiddleware, workspaceMiddleware(['owner', 'admin']), deleteMemberByRole)
 
-// Enviar invitacion a un nuevo miembro (todavia no se llego ahi) -->
-//workspaceRouter('/:worksapce_id/members/invite')
+// Alta directa de miembros: POST /:workspace_id/members (ver arriba).
+// La invitacion por mail con token y la pantalla de aceptacion quedan fuera de alcance.
 
-// Aceptar invitacion (todavia no se llego ahi) -->
-//workspaceRouter('/:workspace_id/members/accept-invite/:invitation_token')
+// Los canales del workspace viven en channel.router.js (main.js los monta sobre /api/workspace)
 
 export default workspaceRouter

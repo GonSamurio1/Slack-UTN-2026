@@ -1,0 +1,194 @@
+/*
+Pantalla del workspace: header + layout de dos columnas
+(sidebar de canales/miembros + area principal del canal).
+Reutiliza la paleta global del proyecto (globals.css).
+*/
+
+.workspace-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+}
+
+/* ===== Estado de carga completa ===== */
+
+.workspace-screen--loading {
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.workspace-screen--loading p {
+  margin: 0;
+}
+
+.workspace-screen__loader {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: workspace-screen-spin 0.7s linear infinite;
+}
+
+@keyframes workspace-screen-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Estado de error completa ===== */
+
+.workspace-screen--error {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.workspace-screen__error-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.workspace-screen__retry {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.workspace-screen__retry:hover {
+  color: var(--primary-dark);
+}
+
+.workspace-screen__back-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.workspace-screen__back-link:hover {
+  color: var(--primary);
+}
+
+/* ===== Header ===== */
+
+.workspace-screen__header {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.workspace-screen__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.workspace-screen__back:hover {
+  color: var(--primary);
+}
+
+.workspace-screen__back-arrow {
+  font-size: 15px;
+}
+
+.workspace-screen__header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.workspace-screen__header-actions {
+  flex-shrink: 0;
+}
+
+.workspace-screen__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-screen__description {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Layout: sidebar + area principal ===== */
+
+.workspace-screen__layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 0;
+}
+
+.workspace-screen__sidebar {
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  background: #FAF9FA;
+  overflow-y: auto;
+}
+
+/* ===== Area principal (placeholder sin canal seleccionado) ===== */
+
+.workspace-screen__main {
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.workspace-screen__placeholder {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.workspace-screen__placeholder p {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.workspace-screen__placeholder-hint {
+  font-size: 13px;
+}
+
+/* ===== Responsive: en pantallas angostas el sidebar va arriba ===== */
+
+@media (max-width: 768px) {
+  .workspace-screen__layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .workspace-screen__sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .workspace-screen__main {
+    min-height: 320px;
+  }
+}

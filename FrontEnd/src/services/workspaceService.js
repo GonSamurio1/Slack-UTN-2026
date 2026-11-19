@@ -76,6 +76,36 @@ export async function getWorkspaceById(workspace_id) {
 }
 
 /*
+Consulta a la API para agregar un usuario existente al workspace por email.
+El rol permitido por el backend es 'admin' o 'user' (owner/admin pueden invitar).
+*/
+export async function addWorkspaceMember(workspace_id, email, rol = 'user') {
+  const auth_token = localStorage.getItem('auth_token')
+  const response_http = await fetch(
+    API_URL + '/api/workspace/' + workspace_id + '/members',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth_token}`
+      },
+      body: JSON.stringify({
+        email: email,
+        rol: rol
+      })
+    }
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+
+  return response_body
+}
+
+/*
 Consulta a la API para obtener la lista de miembros de un workspace.
 Se usa para mostrar los avatares y el conteo de miembros en la lista
 de espacios de trabajo del HomeScreen.

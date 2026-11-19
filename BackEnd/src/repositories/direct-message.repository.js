@@ -20,7 +20,7 @@ class DirectMessageRepository {
     const result = await DirectMessage.findByIdAndUpdate(
       messageId,
       { contenido, editado: true },
-      { new: true }
+      { returnDocument: 'after' }
     );
     return result;
   }

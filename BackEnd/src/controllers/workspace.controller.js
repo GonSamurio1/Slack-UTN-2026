@@ -2,11 +2,10 @@ import workspaceRepository from "../repositories/workspace.repository.js"
 import memberRepository from "../repositories/member.repository.js";
 import userRepository from "../repositories/user.repository.js"
 import ServerError from "../utils/error.util.js";
-import { isObjectIdOrHexString } from "mongoose";
 
 // Crear un nuevo workspace -->
 export async function createWorkspace(req, res) {
-  const { name, description } = req.body;
+  const { name, description } = req.body || {};
 
   if (!name) {
     throw new ServerError("El nombre del espacio de trabajo es obligatorio", 400);
@@ -68,7 +67,7 @@ export async function getWorkspaceById(req, res) {
 // Actualizar un Workspace por ID
 export async function updateWorkspaceById(req, res) {
   const { workspace_id } = req.params
-  const { name, description } = req.body
+  const { name, description } = req.body || {}
 
   const workspaceActualizado = await workspaceRepository.updateById(
     workspace_id,
@@ -133,16 +132,26 @@ export async function workspaceMemberesList(req, res) {
   });
 }
 
-// COMENTAMOS PORQUE NECESITAMOS QUE APUNTE A REACT, TODAVIAN NO SE LLEGO AHI -->
-/* export async function sendIvitationByMail(req, res) {
-  const { email, rol } = req.body
+// Agregar un miembro existente al workspace por email (owner/admin) -->
+export async function addMember(req, res) {
   const { workspace_id } = req.params
+  const { email, rol = 'user' } = req.body || {}
+
+  if (!email || typeof email !== 'string' || email.trim() === '') {
+    throw new ServerError('El email del usuario es obligatorio', 400)
+  }
+
+  const emailNormalizado = email.trim()
+
+  if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado))) {
+    throw new ServerError('El email no tiene un formato valido', 400)
+  }
 
   if (rol !== 'admin' && rol !== 'user') {
     throw new ServerError('Rol invalido para ejecutar esta accion', 400)
   }
 
-  const userExist = await userRepository.getByEmail(email)
+  const userExist = await userRepository.getByEmail(emailNormalizado)
 
   if (!userExist) {
     throw new ServerError('Usuario no encontrado', 404)
@@ -154,28 +163,14 @@ export async function workspaceMemberesList(req, res) {
     throw new ServerError('El usuario ya pertenece a este espacio de trabajo', 400)
   }
 
-  const invitationLink = `${ENVIRONMENT.URL_FRONTEND}/accept-invite/${invitation_token}`;
+  const memberCreated = await memberRepository.create(userExist._id, workspace_id, rol)
 
-  await sendEmailUtil({
-    to: email,
-    subject: 'Invitación a espacio de trabajo',
-    html: `<h1>Has sido invitado a un espacio de trabajo</h1>
-           <p>Haz clic en el siguiente enlace para aceptar la invitación:</p>
-           <a href="${invitationLink}">Aceptar Invitación</a>`
-  });
-
-  // 4. Responder al cliente
   return res.status(201).json({
     ok: true,
     status: 201,
-    message: 'Invitación enviada correctamente',
+    message: 'Miembro agregado correctamente',
     data: {
-      member: newMember
+      member: memberCreated
     }
-  });
-
-} */
-
-/*export async function acceptInvitation(req, res) {
-
-}*/
+  })
+}

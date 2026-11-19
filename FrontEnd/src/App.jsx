@@ -9,6 +9,8 @@ import ForgotPasswordScreen from './Screens/ForgotPasswordScreen/ForgotPasswordS
 import ResetPasswordScreen from './Screens/ResetPasswordScreen/ResetPasswordScreen'
 import CreateWorkspaceScreen from './Screens/CreateWorkspaceScreen/CreateWorkspaceScreen'
 import WorkspaceScreen from './Screens/WorkspaceScreen/WorkspaceScreen'
+import ChannelScreen from './Screens/ChannelScreen/ChannelScreen'
+import CreateChannelScreen from './Screens/CreateChannelScreen/CreateChannelScreen'
 import AuthMiddleware from './Middlewares/AuthMiddleware'
 
 const App = () => {
@@ -18,6 +20,8 @@ const App = () => {
         <Route path='/' element={<HomeScreen />} />
         <Route path='/workspace/new' element={<CreateWorkspaceScreen />} />
         <Route path='/workspace/:workspace_id' element={<WorkspaceScreen />} />
+        <Route path='/workspace/:workspace_id/channel/new' element={<CreateChannelScreen />} />
+        <Route path='/workspace/:workspace_id/channel/:channel_id' element={<ChannelScreen />} />
       </Route>
       <Route path='/login' element={<LoginScreen />} />
       <Route path='/register' element={<RegisterScreen />} />
