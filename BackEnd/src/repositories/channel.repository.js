@@ -17,6 +17,10 @@ class ChannelRepository {
     return result
   }
 
+  async deleteManyByWorkspaceId(workspaceId) {
+    return await Channel.deleteMany({ workspace_id: workspaceId })
+  }
+
   async updateById(channelId, nombre, descripcion) {
     const result = await Channel.findByIdAndUpdate(channelId, { nombre, descripcion }, { returnDocument: 'after' })
     return result

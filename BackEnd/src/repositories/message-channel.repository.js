@@ -19,6 +19,14 @@ class MessageChannelRepository {
     return result
   }
 
+  async deleteManyByChannelId(channelId) {
+    return await MessageChannel.deleteMany({ channel_id: channelId })
+  }
+
+  async deleteManyByChannelIds(channelIds) {
+    return await MessageChannel.deleteMany({ channel_id: { $in: channelIds || [] } })
+  }
+
   async updateById(messageId, contenido) {
     const result = await MessageChannel.findByIdAndUpdate
       (

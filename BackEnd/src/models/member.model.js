@@ -31,6 +31,9 @@ const memberSchema = new mongoose.Schema(
   }
 )
 
+// Un usuario no puede tener dos membresías activas en el mismo workspace
+memberSchema.index({ id_usuario: 1, espacio_trabajo: 1 }, { unique: true })
+
 export const MEMBER_COLLECTION_NAME = 'Miembro'
 const Member = mongoose.model(MEMBER_COLLECTION_NAME, memberSchema)
 export default Member

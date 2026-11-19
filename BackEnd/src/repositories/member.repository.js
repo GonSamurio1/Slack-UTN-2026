@@ -15,6 +15,16 @@ class MemberRepository {
     return await Member.findOneAndDelete({ _id: memberId, espacio_trabajo: workspaceId });
   }
 
+  // Busca una membresía por su _id filtrando por workspace -->
+  async getByIdAndWorkspace(memberId, workspaceId) {
+    return await Member.findOne({ _id: memberId, espacio_trabajo: workspaceId });
+  }
+
+  // Elimina todas las membresías de un workspace -->
+  async deleteManyByWorkspaceId(workspaceId) {
+    return await Member.deleteMany({ espacio_trabajo: workspaceId });
+  }
+
   async updateRoleById(id, role) {
     return await Member.findByIdAndUpdate(
       id,

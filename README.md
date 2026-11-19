@@ -167,3 +167,5 @@ Archivos:
 Nota Express 5: los params del path de montaje (`app.use('/api/workspace/:workspace_id/channels', ...)`) **no se propagan** al `req.params` del sub-router. Por eso el router declara las rutas con el path completo (`/:workspace_id/channels`) montado sobre `/api/workspace`, igual que el resto.
 
 Verificado con pruebas end-to-end contra la API real (con workspace temporal creado y borrado): 15/15 OK (crear, duplicado, sin nombre, descripción larga, listar, detalle, actualizar, inexistente 404, id inválido 500, borrar, re-borrar 404, limpieza).
+
+Hagamos esto. Crea un nuevo readme, donde anotes que es lo que falta para completar el CRUD a la perfeccion, siguiendo los mismos patrones del proyecto. Luego de ahi me fijo bien que puede cambiar, etc. Fijate tambien si hay algun error de logica. En resumen un readme que diga que es lo que falta para terminar con el CRUD con los requisitos minimos teniendo en cuenta ya el avance del proyecto como esta ahora. Al final decido conservar los cambios sin commitear ya que los entendi. 
