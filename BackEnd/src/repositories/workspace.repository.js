@@ -27,7 +27,7 @@ class WorkspaceRepository {
   // primero los mensajes de los canales, luego los canales, las membresías
   // y finalmente el workspace (en ese orden, para evitar huérfanos)
   async deleteByIdWithCascade(workspaceId) {
-    const channels = await channelRepository.getAllChannelsByWorkpaceId(workspaceId)
+    const channels = await channelRepository.getAllChannelsByWorkspaceId(workspaceId)
     const channelIds = channels.map((channel) => channel._id)
 
     await messageChannelRepository.deleteManyByChannelIds(channelIds)

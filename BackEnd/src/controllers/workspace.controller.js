@@ -23,8 +23,8 @@ function validarNombreWorkspace(name) {
   return nombreNormalizado;
 }
 
-// La descripción es opcional; si se da, debe ser texto no vacío (trim) y no
-// puede superar los 1000 caracteres
+// La descripción es opcional; si se da, debe ser texto y no puede superar
+// los 1000 caracteres. Un string vacío equivale a no enviarla.
 function validarDescripcionWorkspace(descripcion) {
   if (descripcion === undefined || descripcion === null) {
     return undefined;
@@ -36,8 +36,9 @@ function validarDescripcionWorkspace(descripcion) {
 
   const descripcionNormalizada = descripcion.trim();
 
+  // La descripción es opcional: un string vacío equivale a no enviarla
   if (descripcionNormalizada === '') {
-    throw new ServerError('La descripción del espacio de trabajo no puede ser vacía', 400);
+    return undefined;
   }
 
   if (descripcionNormalizada.length > MAX_LEN_DESCRIPTION) {
@@ -131,10 +132,19 @@ export async function updateWorkspaceById(req, res) {
     }
   }
 
+  // Sin campos válidos no hay nada que actualizar (evita un update vacío)
+  if (Object.keys(updateData).length === 0) {
+    throw new ServerError('No hay campos para actualizar', 400);
+  }
+
   const workspaceActualizado = await workspaceRepository.updateById(
     workspace_id,
     updateData
   )
+
+  if (!workspaceActualizado) {
+    throw new ServerError('Espacio de trabajo no encontrado', 404);
+  }
 
   return res.status(200).send({
     ok: true,
@@ -182,7 +192,7 @@ export async function deleteMemberByRole(req, res) {
 
   // Un admin no puede expulsar a otro admin; solo puede hacerlo el owner
   if (rolTarget === 'admin' && rolActor !== 'owner') {
-    throw new ServerError('Solo el propietario del espacio de trabajo puede eliminar adminstradores', 403);
+    throw new ServerError('Solo el propietario del espacio de trabajo puede eliminar administradores', 403);
   }
 
   const memberDeletd = await memberRepository.deleteById(member_id, workspace_id);

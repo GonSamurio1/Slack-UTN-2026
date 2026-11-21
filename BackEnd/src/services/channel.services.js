@@ -49,7 +49,7 @@ function validarNombreUnico(canales, nombre, idCanalAEvaluar) {
 export async function createChannel(workspace_id, datos) {
   const { nombre, descripcion } = validarDatos(datos.name, datos.description);
 
-  const canalesDelWorkspace = await channelRepository.getAllChannelsByWorkpaceId(workspace_id);
+  const canalesDelWorkspace = await channelRepository.getAllChannelsByWorkspaceId(workspace_id);
   validarNombreUnico(canalesDelWorkspace, nombre);
 
   const channelCreated = await channelRepository.createChannel(nombre, descripcion, workspace_id);
@@ -59,7 +59,7 @@ export async function createChannel(workspace_id, datos) {
 
 // Obtener la lista de canales de un workspace -->
 export async function getChannelsList(workspace_id) {
-  const canales = await channelRepository.getAllChannelsByWorkpaceId(workspace_id);
+  const canales = await channelRepository.getAllChannelsByWorkspaceId(workspace_id);
 
   return canales;
 }
@@ -82,7 +82,7 @@ export async function updateChannelById(workspace_id, channel_id, datos) {
 
   const { nombre, descripcion } = validarDatos(datos.name, datos.description);
 
-  const canalesDelWorkspace = await channelRepository.getAllChannelsByWorkpaceId(workspace_id);
+  const canalesDelWorkspace = await channelRepository.getAllChannelsByWorkspaceId(workspace_id);
   validarNombreUnico(canalesDelWorkspace, nombre, channel_id);
 
   const channelActualizado = await channelRepository.updateById(channel_id, nombre, descripcion);

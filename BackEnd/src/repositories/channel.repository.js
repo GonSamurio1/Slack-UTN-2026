@@ -31,7 +31,7 @@ class ChannelRepository {
     return result
   }
 
-  async getAllChannelsByWorkpaceId(workspace_id) {
+  async getAllChannelsByWorkspaceId(workspace_id) {
     const result = await Channel.find({ workspace_id })
     return result
   }
