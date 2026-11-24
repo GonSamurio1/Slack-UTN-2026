@@ -69,24 +69,30 @@ Proyecto: clon simplificado de Slack (React + Vite / Express + MongoDB). Fecha: 
 
 Verificado: sin `console.log` de PII ni `new: true` en `BackEnd/src` (grep), sintaxis OK en los 9 archivos y e2e de 1.3 **18/18 OK** con el log del servidor limpio (solo arranque, DNS y conexión a Mongo).
 
-## Registro técnico: 1.3 Alta de miembros (hecho)
+## Registro técnico: 1.3 Alta de miembros por invitación (hecho)
 
-Se optó por **alta directa** (sin invitación por mail ni pantalla de aceptación), que es lo que muestra el prototipo con el botón "Add member".
+Se reemplazó el alta directa por **invitación por mail con aceptación**. La membresía **no** se crea al invitar: se crea recién cuando la persona invitada acepta desde `/accept-invite`. La invitación es un JWT firmado que expira a los 7 días y no se guarda nada en la base hasta la aceptación, así que un invitado pendiente nunca aparece como miembro ni obtiene acceso al workspace.
 
-Endpoints nuevos (JWT + `workspaceMiddleware(['owner','admin'])`):
-- `POST /api/workspace/:workspace_id/members` — body `{ email, rol }` (`rol`: `admin` o `user`, default `user`). Valida email presente y con formato, que el usuario exista, que no sea ya miembro y que el rol sea válido. Responde `201` con la membresía creada (`invitacion_aceptada: true`).
+Endpoints nuevos:
+- `POST /api/workspace/:workspace_id/members/invite` — (owner/admin) body `{ email, rol }`. Valida email, usuario existente y verificado, que no sea ya miembro y el rol (`admin`/`user`). Envía el mail con el link y responde `200`. **No crea la membresía.**
+- `GET /api/workspace/:workspace_id/members/invitation?invitation_token=...` — (autenticado con el email invitado) vista previa: quién invitó, workspace y rol. Sin efectos secundarios.
+- `POST /api/workspace/:workspace_id/members/accept-invite` — (autenticado con el email invitado) body `{ invitation_token }`. Crea la membresía con `invitacion_aceptada: true`. Es idempotente: si ya es miembro responde `200` con `already_member: true`.
 
 Archivos:
-- `src/controllers/workspace.controller.js` — `addMember`; se eliminó el esqueleto comentado de invitación por mail; `createWorkspace`/`updateWorkspaceById` con `req.body || {}`
-- `src/routes/workspace.router.js` — ruta + bloque `@openapi` (tag `Workspaces`)
-- `src/repositories/member.repository.js` — `create` ahora marca `invitacion_aceptada: true`
+- `src/controllers/workspace.controller.js` — `inviteMember`, `getInvitationPreview`, `acceptInvite`
+- `src/routes/workspace.router.js` — rutas + bloques `@openapi`
+- `src/utils/email-templates/workspace-invite.template.js` (nuevo)
+- `member.repository.js` y modelo `Member` — sin cambios (el campo `invitacion_aceptada` sigue existiendo y se guarda en `true`)
 
 Front:
-- `src/services/workspaceService.js` — `addWorkspaceMember(workspace_id, email, rol)`
-- `src/Components/AddMember/` (nuevo) — botón "Add member" que despliega formulario inline (email + rol Miembro/Administrador), estados de carga/error/éxito y refresco de la lista de miembros
-- `src/Screens/WorkspaceScreen/WorkspaceScreen.jsx` — reemplaza el aviso informativo por `<AddMember />`; se quitó el texto obsoleto del placeholder
+- `src/services/workspaceService.js` — `inviteWorkspaceMember`, `getWorkspaceInvitation`, `acceptWorkspaceInvite`
+- `src/Components/AddMember/` — ahora invita ("Enviar invitacion") y avisa que se envió el mail; no recarga la lista de miembros
+- `src/Screens/AcceptInviteScreen/` (nuevo) — muestra quién te invitó y a qué workspace, con botones "Aceptar invitacion" / "Ahora no"
+- `src/Middlewares/AuthMiddleware.jsx` — guarda el destino en `?redirect=` para volver después del login
+- `src/Screens/LoginScreen/LoginScreen.jsx` — navega al `redirect` (validando que sea una ruta interna)
+- `src/App.jsx` — ruta protegida `/accept-invite`
 
-Verificado: prueba end-to-end contra la API real (18/18 OK): alta 201, rol default, membresía aceptada, lista con populate, duplicado 400, usuario inexistente 404, rol `owner` 400, email inválido/faltante 400, usuario común 403, sin token 400, alta como `admin`; usuarios/workspace temporales borrados al final. `npm run build` OK (77 módulos) y OpenAPI genera el path nuevo sin warnings.
+Verificado: e2e contra la API real (13/13 OK): preview OK, otro email 403, token expirado 400, token de otro tipo 400, accept 201, accept idempotente 200, preview `already_member`, usuario inexistente 404, rol `owner` 400, ya miembro 400, sin permisos 403 y lista incluye al invitado; usuarios/workspace temporales borrados al final. `npm run build` OK (83 módulos) y OpenAPI expone las 3 rutas nuevas sin warnings.
 
 ## Registro técnico: 2.3 Crear canal + 2.4 Logout (hecho)
 

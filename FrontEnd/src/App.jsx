@@ -12,6 +12,7 @@ import EditWorkspaceScreen from './Screens/EditWorkspaceScreen/EditWorkspaceScre
 import WorkspaceScreen from './Screens/WorkspaceScreen/WorkspaceScreen'
 import ChannelScreen from './Screens/ChannelScreen/ChannelScreen'
 import CreateChannelScreen from './Screens/CreateChannelScreen/CreateChannelScreen'
+import AcceptInviteScreen from './Screens/AcceptInviteScreen/AcceptInviteScreen'
 import AuthMiddleware from './Middlewares/AuthMiddleware'
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
         <Route path='/workspace/:workspace_id/edit' element={<EditWorkspaceScreen />} />
         <Route path='/workspace/:workspace_id/channel/new' element={<CreateChannelScreen />} />
         <Route path='/workspace/:workspace_id/channel/:channel_id' element={<ChannelScreen />} />
+        <Route path='/accept-invite' element={<AcceptInviteScreen />} />
       </Route>
       <Route path='/login' element={<LoginScreen />} />
       <Route path='/register' element={<RegisterScreen />} />

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
 import useRequest from '../../hooks/useRequest'
@@ -16,6 +16,18 @@ function LoginScreen() {
   const { loading, response, error, sendRequest } = useRequest()
 
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  /*
+    Destino al que volver despues del login. Lo usa AuthMiddleware cuando
+    alguien entra a una ruta protegida sin sesion (por ejemplo, un link de
+    invitacion). Solo aceptamos rutas internas: empezar con "/" y no con "//"
+    para evitar open redirects.
+  */
+  const redirect = searchParams.get('redirect')
+  const destino = redirect && redirect.startsWith('/') && !redirect.startsWith('//')
+    ? redirect
+    : '/'
 
 
   async function handleSubmit(event) {
@@ -53,7 +65,7 @@ function LoginScreen() {
       if (response && response.data) {
         //console.log('Respuesta del back:', response)
         localStorage.setItem('auth_token', response.data.authToken)
-        navigate('/')
+        navigate(destino)
       }
     },
     [response]

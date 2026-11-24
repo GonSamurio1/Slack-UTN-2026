@@ -1,7 +1,11 @@
+import jwt from 'jsonwebtoken'
 import workspaceRepository from "../repositories/workspace.repository.js"
 import memberRepository from "../repositories/member.repository.js";
 import userRepository from "../repositories/user.repository.js"
 import ServerError from "../utils/error.util.js";
+import ENVIROMMENT from "../config/enviromment.config.js"
+import mailerTransporter from "../config/mailer.config.js"
+import { workspaceInviteTemplate } from "../utils/email-templates/workspace-invite.template.js"
 
 // Los modelos limitan name a 30 y description a 1000 caracteres;
 // validamos al entrar para devolver 400 con mensajes claros (no 500).
@@ -322,6 +326,263 @@ export async function addMember(req, res) {
     message: 'Miembro agregado correctamente',
     data: {
       member: memberCreated
+    }
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/* Invitaciones por mail                                               */
+/* ------------------------------------------------------------------ */
+
+/*
+La invitacion es un JWT firmado (mismo patron que verificacion de email).
+No se escribe nada en la base hasta que la persona invitada la acepta, asi
+que un invitado pendiente nunca aparece como miembro ni obtiene acceso.
+*/
+const INVITATION_TYPE = 'workspace_invite'
+const INVITATION_TTL = '7d'
+
+function normalizarEmail(email) {
+  return String(email ?? '').trim().toLowerCase()
+}
+
+function firmarTokenInvitacion({ workspaceId, email, rol, invitador }) {
+  return jwt.sign(
+    {
+      type: INVITATION_TYPE,
+      workspace_id: String(workspaceId),
+      email: normalizarEmail(email),
+      rol,
+      invited_by: invitador.id,
+      invited_by_name: invitador.name
+    },
+    ENVIROMMENT.JWT_SECRET_KEY,
+    { expiresIn: INVITATION_TTL }
+  )
+}
+
+/*
+Valida la firma, la expiracion y el tipo del token. Lanza 400 si algo falla.
+El claim `type` evita que un token de login o de verificacion sirva aca.
+*/
+function leerTokenInvitacion(invitation_token) {
+  if (!invitation_token || typeof invitation_token !== 'string') {
+    throw new ServerError('La invitacion es obligatoria', 400)
+  }
+
+  let payload
+  try {
+    payload = jwt.verify(invitation_token, ENVIROMMENT.JWT_SECRET_KEY)
+  } catch (error) {
+    throw new ServerError('La invitacion es invalida o expiro', 400)
+  }
+
+  if (payload.type !== INVITATION_TYPE) {
+    throw new ServerError('La invitacion es invalida o expiro', 400)
+  }
+
+  return payload
+}
+
+/*
+Validaciones comunes a la vista previa y a la aceptacion:
+- el token corresponde a este workspace
+- quien esta logueado es la persona invitada
+- el workspace sigue existiendo
+Devuelve el workspace.
+*/
+async function validarInvitacion(payload, workspace_id, req) {
+  if (String(payload.workspace_id) !== String(workspace_id)) {
+    throw new ServerError('La invitacion no corresponde a este espacio de trabajo', 400)
+  }
+
+  if (normalizarEmail(payload.email) !== normalizarEmail(req.user.email)) {
+    throw new ServerError('Esta invitacion fue enviada a otro email', 403)
+  }
+
+  const workspace = await workspaceRepository.getByID(workspace_id)
+
+  if (!workspace) {
+    throw new ServerError('Workspace no encontrado', 404)
+  }
+
+  return workspace
+}
+
+/*
+POST /api/workspace/:workspace_id/members/invite
+Envia el mail de invitacion. No crea la membresia: eso pasa al aceptar.
+*/
+export async function inviteMember(req, res) {
+  const { workspace_id } = req.params
+  const { email, rol = 'user' } = req.body || {}
+
+  if (!email || typeof email !== 'string' || email.trim() === '') {
+    throw new ServerError('El email del usuario es obligatorio', 400)
+  }
+
+  const emailNormalizado = email.trim()
+
+  if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado))) {
+    throw new ServerError('El email no tiene un formato valido', 400)
+  }
+
+  if (rol !== 'admin' && rol !== 'user') {
+    throw new ServerError('Rol invalido para ejecutar esta accion', 400)
+  }
+
+  const userExist = await userRepository.getByEmail(emailNormalizado)
+
+  if (!userExist) {
+    throw new ServerError('Usuario no encontrado', 404)
+  }
+
+  if (!userExist.emailVerificado) {
+    throw new ServerError('El usuario todavía no verificó su email', 400)
+  }
+
+  const userWithMembership = await memberRepository.getMembershipByUserAndWorkspace(userExist._id, workspace_id)
+
+  if (userWithMembership) {
+    throw new ServerError('El usuario ya pertenece a este espacio de trabajo', 400)
+  }
+
+  const invitation_token = firmarTokenInvitacion({
+    workspaceId: workspace_id,
+    email: userExist.email,
+    rol,
+    invitador: { id: req.user.id, name: req.user.name }
+  })
+
+  const { subject, html } = workspaceInviteTemplate({
+    invitationToken: invitation_token,
+    workspaceId: workspace_id,
+    workspaceName: req.workspace.name,
+    inviterName: req.user.name
+  })
+
+  await mailerTransporter.sendMail({
+    to: userExist.email,
+    from: ENVIROMMENT.GMAIL_USER,
+    subject: subject,
+    html: html
+  })
+
+  return res.status(200).json({
+    ok: true,
+    status: 200,
+    message: `Invitacion enviada a ${userExist.email}`,
+    data: {
+      email: userExist.email,
+      rol: rol
+    }
+  })
+}
+
+/*
+GET /api/workspace/:workspace_id/members/invitation?invitation_token=...
+Vista previa para la pantalla de aceptacion: quien invito, a que workspace
+y con que rol. No tiene efectos secundarios.
+*/
+export async function getInvitationPreview(req, res) {
+  const { workspace_id } = req.params
+  const { invitation_token } = req.query
+
+  const payload = leerTokenInvitacion(invitation_token)
+  const workspace = await validarInvitacion(payload, workspace_id, req)
+
+  const existing = await memberRepository.getMembershipByUserAndWorkspace(req.user.id, workspace_id)
+
+  return res.status(200).json({
+    ok: true,
+    status: 200,
+    message: 'Invitacion valida',
+    data: {
+      workspace: {
+        _id: workspace._id,
+        name: workspace.name
+      },
+      invited_by: {
+        name: payload.invited_by_name || 'Un miembro del espacio'
+      },
+      invited_email: payload.email,
+      rol: payload.rol,
+      expires_at: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+      already_member: Boolean(existing)
+    }
+  })
+}
+
+/*
+POST /api/workspace/:workspace_id/members/accept-invite
+Crea la membresia recien cuando la persona invitada acepta.
+Es idempotente: si ya es miembro, responde 200 sin duplicar nada.
+*/
+export async function acceptInvite(req, res) {
+  const { workspace_id } = req.params
+  const { invitation_token } = req.body || {}
+
+  const payload = leerTokenInvitacion(invitation_token)
+  const workspace = await validarInvitacion(payload, workspace_id, req)
+
+  if (payload.rol !== 'admin' && payload.rol !== 'user') {
+    throw new ServerError('La invitacion tiene un rol invalido', 400)
+  }
+
+  const user = await userRepository.getByEmail(req.user.email)
+
+  if (!user) {
+    throw new ServerError('Usuario no encontrado', 404)
+  }
+
+  if (!user.emailVerificado) {
+    throw new ServerError('El usuario todavía no verificó su email', 400)
+  }
+
+  const existing = await memberRepository.getMembershipByUserAndWorkspace(user._id, workspace_id)
+
+  if (existing) {
+    return res.status(200).json({
+      ok: true,
+      status: 200,
+      message: 'Ya perteneces a este espacio de trabajo',
+      data: {
+        workspace: { _id: workspace._id, name: workspace.name },
+        member: existing,
+        already_member: true
+      }
+    })
+  }
+
+  let memberCreated
+  try {
+    memberCreated = await memberRepository.create(user._id, workspace_id, payload.rol)
+  } catch (error) {
+    // Dos aceptaciones al mismo tiempo: el indice unico mata una, la tratamos como idempotente
+    if (error.code === 'E11000' || error.code === 11000) {
+      const member = await memberRepository.getMembershipByUserAndWorkspace(user._id, workspace_id)
+      return res.status(200).json({
+        ok: true,
+        status: 200,
+        message: 'Ya perteneces a este espacio de trabajo',
+        data: {
+          workspace: { _id: workspace._id, name: workspace.name },
+          member: member,
+          already_member: true
+        }
+      })
+    }
+    throw error
+  }
+
+  return res.status(201).json({
+    ok: true,
+    status: 201,
+    message: `Te uniste a ${workspace.name}`,
+    data: {
+      workspace: { _id: workspace._id, name: workspace.name },
+      member: memberCreated,
+      already_member: false
     }
   })
 }

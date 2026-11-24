@@ -1,7 +1,7 @@
 import express from 'express'
 
 // Import funciones de controllers -->
-import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, updateMemberRole, workspaceMemberesList, addMember } from '../controllers/workspace.controller.js'
+import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, updateMemberRole, workspaceMemberesList, addMember, inviteMember, getInvitationPreview, acceptInvite } from '../controllers/workspace.controller.js'
 
 // Import Middlewares -->
 import authMiddleware from '../middlewares/auth.middleware.js'
@@ -236,6 +236,315 @@ workspaceRouter.get('/', authMiddleware, getUserWorkspaces);
  *         $ref: '#/components/responses/ServiceUnavailable503'
  */
 workspaceRouter.post('/:workspace_id/members', authMiddleware, workspaceMiddleware(['owner', 'admin']), addMember)
+
+/**
+ * @openapi
+ * /api/workspace/{workspace_id}/members/invite:
+ *   post:
+ *     tags: [Workspaces]
+ *     summary: Invita por email a un usuario existente
+ *     description: |
+ *       Envia un mail con un link para aceptar la invitacion. La membresia **no** se crea
+ *       en este paso: se crea recien cuando la persona invitada acepta (ver
+ *       `POST /members/accept-invite`). El token expira a los 7 dias.
+ *       Solo **owner** y **admin**. Los roles permitidos son `admin` y `user`.
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: workspace_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '665f1c9e2f4a3b0012345679'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: 'companero@mail.com'
+ *               rol:
+ *                 type: string
+ *                 enum: [admin, user]
+ *                 default: user
+ *                 example: user
+ *     responses:
+ *       200:
+ *         description: Invitacion enviada (no crea la membresia)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       example: 'Invitacion enviada a companero@mail.com'
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         email:
+ *                           type: string
+ *                           format: email
+ *                         rol:
+ *                           type: string
+ *                           enum: [admin, user]
+ *       400:
+ *         description: Email faltante o invalido, rol invalido, usuario sin verificar, o el usuario ya es miembro
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               EmailFaltante:
+ *                 value: { ok: false, status: 400, message: 'El email del usuario es obligatorio' }
+ *               EmailInvalido:
+ *                 value: { ok: false, status: 400, message: 'El email no tiene un formato valido' }
+ *               RolInvalido:
+ *                 value: { ok: false, status: 400, message: 'Rol invalido para ejecutar esta accion' }
+ *               EmailNoVerificado:
+ *                 value: { ok: false, status: 400, message: 'El usuario todavía no verificó su email' }
+ *               YaEsMiembro:
+ *                 value: { ok: false, status: 400, message: 'El usuario ya pertenece a este espacio de trabajo' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized401'
+ *       403:
+ *         description: No es miembro, o su rol no alcanza (se requiere owner o admin)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               NoMiembro:
+ *                 value: { ok: false, status: 403, message: 'No pertences a este espacio de trabajo' }
+ *               RolInsuficiente:
+ *                 value: { ok: false, status: 403, message: 'No tenes permisos suficientes para hacer esta operacion' }
+ *       404:
+ *         description: Workspace no encontrado, o no existe un usuario con ese email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               WorkspaceInexistente:
+ *                 value: { ok: false, status: 404, message: 'Workspace no encontrado' }
+ *               UsuarioInexistente:
+ *                 value: { ok: false, status: 404, message: 'Usuario no encontrado' }
+ *       500:
+ *         description: Error inesperado (incluye fallo de envio de mail o workspace_id invalido)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 500, message: 'Internal server error' }
+ *       503:
+ *         $ref: '#/components/responses/ServiceUnavailable503'
+ */
+workspaceRouter.post('/:workspace_id/members/invite', authMiddleware, workspaceMiddleware(['owner', 'admin']), inviteMember)
+
+/**
+ * @openapi
+ * /api/workspace/{workspace_id}/members/invitation:
+ *   get:
+ *     tags: [Workspaces]
+ *     summary: Vista previa de una invitacion
+ *     description: |
+ *       Devuelve quien invito, a que workspace y con que rol, para que la pantalla de
+ *       aceptacion lo muestre antes de confirmar. No tiene efectos secundarios.
+ *       Requiere estar logueado con el email invitado.
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: workspace_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '665f1c9e2f4a3b0012345679'
+ *       - in: query
+ *         name: invitation_token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invitacion valida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         workspace:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                         invited_by:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                         invited_email:
+ *                           type: string
+ *                           format: email
+ *                         rol:
+ *                           type: string
+ *                           enum: [admin, user]
+ *                         expires_at:
+ *                           type: string
+ *                           format: date-time
+ *                         already_member:
+ *                           type: boolean
+ *       400:
+ *         description: Token ausente, invalido o expirado; o no corresponde a este workspace
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               TokenAusente:
+ *                 value: { ok: false, status: 400, message: 'La invitacion es obligatoria' }
+ *               TokenInvalido:
+ *                 value: { ok: false, status: 400, message: 'La invitacion es invalida o expiro' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized401'
+ *       403:
+ *         description: La sesion iniciada no es la del email invitado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 403, message: 'Esta invitacion fue enviada a otro email' }
+ *       404:
+ *         description: Workspace no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 404, message: 'Workspace no encontrado' }
+ *       503:
+ *         $ref: '#/components/responses/ServiceUnavailable503'
+ */
+workspaceRouter.get('/:workspace_id/members/invitation', authMiddleware, getInvitationPreview)
+
+/**
+ * @openapi
+ * /api/workspace/{workspace_id}/members/accept-invite:
+ *   post:
+ *     tags: [Workspaces]
+ *     summary: Acepta una invitacion y crea la membresia
+ *     description: |
+ *       Valida el token de la invitacion y crea la membresia con `invitacion_aceptada: true`.
+ *       Requiere estar logueado con el email invitado. Es idempotente: si ya es miembro
+ *       responde 200 con `already_member: true`.
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: workspace_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '665f1c9e2f4a3b0012345679'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [invitation_token]
+ *             properties:
+ *               invitation_token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Ya era miembro (idempotente)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         already_member:
+ *                           type: boolean
+ *                           example: true
+ *       201:
+ *         description: Membresia creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       example: 'Te uniste a Equipo Backend'
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         workspace:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                         member:
+ *                           $ref: '#/components/schemas/Member'
+ *                         already_member:
+ *                           type: boolean
+ *                           example: false
+ *       400:
+ *         description: Token ausente, invalido o expirado; rol invalido; o email sin verificar
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               TokenInvalido:
+ *                 value: { ok: false, status: 400, message: 'La invitacion es invalida o expiro' }
+ *               RolInvalido:
+ *                 value: { ok: false, status: 400, message: 'La invitacion tiene un rol invalido' }
+ *               EmailNoVerificado:
+ *                 value: { ok: false, status: 400, message: 'El usuario todavía no verificó su email' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized401'
+ *       403:
+ *         description: La sesion iniciada no es la del email invitado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 403, message: 'Esta invitacion fue enviada a otro email' }
+ *       404:
+ *         description: Workspace o usuario no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               WorkspaceInexistente:
+ *                 value: { ok: false, status: 404, message: 'Workspace no encontrado' }
+ *               UsuarioInexistente:
+ *                 value: { ok: false, status: 404, message: 'Usuario no encontrado' }
+ *       503:
+ *         $ref: '#/components/responses/ServiceUnavailable503'
+ */
+workspaceRouter.post('/:workspace_id/members/accept-invite', authMiddleware, acceptInvite)
 
 /**
  * @openapi
@@ -748,7 +1057,9 @@ workspaceRouter.delete('/:workspace_id/members/:member_id', authMiddleware, work
 workspaceRouter.put('/:workspace_id/members/:member_id', authMiddleware, workspaceMiddleware(['owner', 'admin']), updateMemberRole)
 
 // Alta directa de miembros: POST /:workspace_id/members (ver arriba).
-// La invitacion por mail con token y la pantalla de aceptacion quedan fuera de alcance.
+// Invitacion por mail: POST /:workspace_id/members/invite, vista previa en
+// GET /:workspace_id/members/invitation y aceptacion en
+// POST /:workspace_id/members/accept-invite.
 
 // Los canales del workspace viven en channel.router.js (main.js los monta sobre /api/workspace)
 

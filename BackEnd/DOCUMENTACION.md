@@ -23,12 +23,11 @@ El proyecto es un clon simplificado de **Slack**: una plataforma de mensajería 
   - Sistema de roles por workspace: `owner` (creador), `admin` y `user`.
 - **Infraestructura**
   - Persistencia en **MongoDB (Atlas)** vía Mongoose.
-  - Envío de emails transaccionales con **Nodemailer** (verificación de cuenta y reset de contraseña).
+  - Envío de emails transaccionales con **Nodemailer** (verificación de cuenta, reset de contraseña e invitaciones a workspaces).
   - Despliegue pensado para **Vercel Serverless Functions** (la app se exporta como handler; `app.listen` solo corre en desarrollo).
 
 ### Fuera de alcance (pendiente / planificado)
 
-- Invitaciones a workspaces (`POST /api/workspace/:workspace_id/members/invite` y `accept-invite`) — definidas pero aún no implementadas.
 - Canales y mensajes de canal (`Channel`, `MessageChannel`) — modelos y repositorios planificados en el roadmap (ver archivo `readme` del backend).
 - Mensajes directos (`DirectMessage`) — planificado, aún sin endpoints.
 
@@ -131,6 +130,9 @@ Middlewares de ruta:
 | `POST` | `/api/workspace` | `authMiddleware` | autenticado (cualquiera) | Crea un workspace (`name` obligatorio, `description` opcional) y crea automáticamente la membresía del creador con rol **`owner`**. Responde `201`. |
 | `GET` | `/api/workspace` | `authMiddleware` | autenticado (cualquiera) | Devuelve todos los workspaces a los que pertenece el usuario autenticado (vía sus membresías). |
 | `GET` | `/api/workspace/:workspace_id/members` | `authMiddleware` + `workspaceMiddleware([])` | miembro del workspace | Devuelve la lista de membresías (miembros) del workspace. `[]` = cualquier rol, pero exige ser miembro. |
+| `POST` | `/api/workspace/:workspace_id/members/invite` | `authMiddleware` + `workspaceMiddleware(['owner','admin'])` | `owner` / `admin` | Envía por mail una invitación con token (expira en 7 días) a un usuario registrado y verificado. **No crea la membresía**: eso ocurre al aceptar. |
+| `GET` | `/api/workspace/:workspace_id/members/invitation` | `authMiddleware` | autenticado con el email invitado | Vista previa de la invitación (`invitation_token` por querystring): quién invitó, workspace y rol. Sin efectos secundarios. |
+| `POST` | `/api/workspace/:workspace_id/members/accept-invite` | `authMiddleware` | autenticado con el email invitado | Acepta la invitación (`invitation_token` en el body) y crea la membresía con `invitacion_aceptada: true`. Idempotente. |
 | `GET` | `/api/workspace/:workspace_id` | `authMiddleware` + `workspaceMiddleware([])` | miembro del workspace | Devuelve los detalles de un workspace específico. |
 | `PUT` | `/api/workspace/:workspace_id` | `authMiddleware` + `workspaceMiddleware(['owner','admin'])` | `owner` / `admin` | Actualiza nombre y/o descripción del workspace. |
 | `DELETE` | `/api/workspace/:workspace_id` | `authMiddleware` + `workspaceMiddleware(['owner'])` | solo `owner` | Elimina el workspace. |
@@ -139,10 +141,7 @@ Middlewares de ruta:
 
 ### 5.4 Endpoints planificados (no implementados)
 
-Definidos como comentario en `workspace.router.js` / `workspace.controller.js`:
-
-- `POST /api/workspace/:workspace_id/members/invite` — (owner/admin) envía invitación por email con token y expiración.
-- `GET /api/workspace/:workspace_id/members/accept-invite/:invitation_token` — (público) acepta la invitación y crea la membresía con `invitacion_aceptada: true`.
+- Mensajes directos (`DirectMessage`) — planificados, aún sin endpoints.
 
 ---
 

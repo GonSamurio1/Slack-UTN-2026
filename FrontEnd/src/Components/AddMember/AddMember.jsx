@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMemberList } from '../../Contexts/WorkspaceContext'
 import useRequest from '../../hooks/useRequest'
-import { addWorkspaceMember } from '../../services/workspaceService'
+import { inviteWorkspaceMember } from '../../services/workspaceService'
 import Alert from '../Alert/Alert'
 import Button from '../Form/Button'
 import './AddMember.css'
@@ -10,9 +10,9 @@ import './AddMember.css'
 Boton "Add member" del sidebar (segun el prototipo).
 
 Al hacer clic despliega un formulario inline con email y rol. El backend
-valida que el usuario exista y que no sea ya miembro del workspace.
-Al agregarlo bien, se limpia el formulario y se recarga la lista de miembros
-(reloadWorkspace del WorkspaceContext).
+valida que el usuario exista, que no sea ya miembro y le envia un mail con
+un link para aceptar. La membresia NO se crea en este paso: la persona se
+une recien cuando acepta, asi que la lista de miembros no cambia todavia.
 */
 const ROLE_OPTIONS = [
   { value: 'user', label: 'Miembro' },
@@ -21,7 +21,7 @@ const ROLE_OPTIONS = [
 
 export default function AddMember() {
 
-  const { workspace_id, reloadWorkspace } = useMemberList()
+  const { workspace_id } = useMemberList()
 
   const [abierto, set_abierto] = useState(false)
   const [email, set_email] = useState('')
@@ -30,14 +30,13 @@ export default function AddMember() {
 
   const { loading, response, error, sendRequest } = useRequest()
 
-  // Cuando el alta sale bien: limpiar el formulario y refrescar miembros
+  // Cuando la invitacion sale bien: limpiar el formulario y mostrar el aviso
   useEffect(
     () => {
       if (response) {
         set_email('')
         set_rol('user')
         set_success_message(response.message)
-        reloadWorkspace()
       }
     },
     [response]
@@ -50,7 +49,7 @@ export default function AddMember() {
     if (!value) return
 
     set_success_message(null)
-    sendRequest(() => addWorkspaceMember(workspace_id, value, rol))
+    sendRequest(() => inviteWorkspaceMember(workspace_id, value, rol))
   }
 
   function abrirFormulario() {
@@ -77,7 +76,7 @@ export default function AddMember() {
 
   return (
     <form className="add-member add-member--open" onSubmit={handleSubmit}>
-      <h3 className="add-member__title">Agregar miembro</h3>
+      <h3 className="add-member__title">Invitar miembro</h3>
 
       <label className="add-member__label" htmlFor="add-member-email">
         Email
@@ -118,7 +117,7 @@ export default function AddMember() {
 
       <div className="add-member__actions">
         <Button type="submit" loading={loading} disabled={!email.trim()}>
-          Agregar
+          Enviar invitacion
         </Button>
         <button
           type="button"

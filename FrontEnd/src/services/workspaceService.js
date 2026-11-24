@@ -76,13 +76,14 @@ export async function getWorkspaceById(workspace_id) {
 }
 
 /*
-Consulta a la API para agregar un usuario existente al workspace por email.
-El rol permitido por el backend es 'admin' o 'user' (owner/admin pueden invitar).
+Consulta a la API para invitar por email a un usuario existente al workspace.
+No crea la membresia: el backend envia un mail y la persona se une recien
+cuando acepta la invitacion. El rol permitido es 'admin' o 'user'.
 */
-export async function addWorkspaceMember(workspace_id, email, rol = 'user') {
+export async function inviteWorkspaceMember(workspace_id, email, rol = 'user') {
   const auth_token = localStorage.getItem('auth_token')
   const response_http = await fetch(
-    API_URL + '/api/workspace/' + workspace_id + '/members',
+    API_URL + '/api/workspace/' + workspace_id + '/members/invite',
     {
       method: 'POST',
       headers: {
@@ -92,6 +93,63 @@ export async function addWorkspaceMember(workspace_id, email, rol = 'user') {
       body: JSON.stringify({
         email: email,
         rol: rol
+      })
+    }
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+
+  return response_body
+}
+
+/*
+Consulta a la API la vista previa de una invitacion (quien invito, a que
+workspace y con que rol). Se usa en la pantalla /accept-invite antes de
+confirmar. Requiere estar logueado con el email invitado.
+*/
+export async function getWorkspaceInvitation(workspace_id, invitation_token) {
+  const auth_token = localStorage.getItem('auth_token')
+  const query = new URLSearchParams({ invitation_token: invitation_token })
+  const response_http = await fetch(
+    API_URL + '/api/workspace/' + workspace_id + '/members/invitation?' + query.toString(),
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${auth_token}`
+      },
+    }
+  )
+
+  const response_body = await response_http.json()
+
+  if (!response_body.ok) {
+    throw new Error(response_body.message)
+  }
+
+  return response_body
+}
+
+/*
+Consulta a la API para aceptar una invitacion. Crea la membresia con
+invitacion_aceptada: true. Es idempotente: si ya era miembro, el backend
+responde 200 con already_member: true.
+*/
+export async function acceptWorkspaceInvite(workspace_id, invitation_token) {
+  const auth_token = localStorage.getItem('auth_token')
+  const response_http = await fetch(
+    API_URL + '/api/workspace/' + workspace_id + '/members/accept-invite',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth_token}`
+      },
+      body: JSON.stringify({
+        invitation_token: invitation_token
       })
     }
   )
