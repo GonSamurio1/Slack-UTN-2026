@@ -56,6 +56,7 @@ Reutiliza la paleta global del proyecto (globals.css).
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
 }
 
 .member-list__name {
@@ -70,6 +71,65 @@ Reutiliza la paleta global del proyecto (globals.css).
 .member-list__role {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Fila de acciones (solo owner/admin): select de rol + boton expulsar */
+.member-list__role-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.member-list__role-select {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.member-list__role-select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.member-list__role-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Boton chico para expulsar (la confirmacion la hace el componente) */
+.member-list__remove {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--error);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.member-list__remove:hover:not(:disabled) {
+  background: var(--error-bg);
+}
+
+.member-list__remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error puntual de una accion sobre un miembro */
+.member-list__item-error {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--error);
 }
 
 .member-list__empty {

@@ -1,0 +1,66 @@
+/*
+Estados de carga y error de la pantalla de edicion de workspace.
+El layout general (fondo, curvas, tarjeta y formulario) se reutiliza
+importando CreateWorkspaceScreen.css desde el componente.
+*/
+
+.edit-workspace-screen__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.edit-workspace-screen__state p {
+  margin: 0;
+}
+
+.edit-workspace-screen__loader {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: edit-workspace-spin 0.7s linear infinite;
+}
+
+@keyframes edit-workspace-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.edit-workspace-screen__state-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.edit-workspace-screen__retry {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.edit-workspace-screen__retry:hover {
+  color: var(--primary-dark);
+}
+
+/* Link para volver al detalle, debajo del formulario */
+.edit-workspace-screen__back {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.edit-workspace-screen__back:hover {
+  color: var(--primary);
+}

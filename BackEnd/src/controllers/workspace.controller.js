@@ -207,6 +207,51 @@ export async function deleteMemberByRole(req, res) {
   })
 }
 
+// Actualizar el rol de un miembro de un Workspace (con jerarquía de roles) -->
+export async function updateMemberRole(req, res) {
+  const { workspace_id, member_id } = req.params
+  const { rol } = req.body || {}
+
+  // El rol destino solo puede ser admin o user: el owner no se transfiere por acá
+  if (rol !== 'admin' && rol !== 'user') {
+    throw new ServerError('Rol invalido para ejecutar esta accion', 400)
+  }
+
+  const member = await memberRepository.getByIdAndWorkspace(member_id, workspace_id);
+
+  if (!member) {
+    throw new ServerError('Miembro no encontrado', 404);
+  }
+
+  const rolActor = req.membership?.rol;
+  const rolTarget = member.rol;
+
+  // El propietario del workspace no se puede modificar
+  if (rolTarget === 'owner') {
+    throw new ServerError('No se puede modificar el rol del propietario del espacio de trabajo', 403);
+  }
+
+  // Un admin no puede modificar a otro admin; solo puede hacerlo el owner
+  if (rolTarget === 'admin' && rolActor !== 'owner') {
+    throw new ServerError('Solo el propietario del espacio de trabajo puede modificar administradores', 403);
+  }
+
+  const memberUpdated = await memberRepository.updateRoleById(member_id, workspace_id, rol);
+
+  if (!memberUpdated) {
+    throw new ServerError('Miembro no encontrado', 404);
+  }
+
+  return res.status(200).send({
+    ok: true,
+    status: 200,
+    message: 'Rol del miembro actualizado correctamente',
+    data: {
+      member: memberUpdated
+    }
+  })
+}
+
 // Obtener lista de miembros de un workspace
 export async function workspaceMemberesList(req, res) {
   const { workspace_id } = req.params;

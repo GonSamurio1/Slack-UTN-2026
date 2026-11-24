@@ -8,6 +8,7 @@ import ResendEmailVerificationScreen from './Screens/ResendEmailVerificationScre
 import ForgotPasswordScreen from './Screens/ForgotPasswordScreen/ForgotPasswordScreen'
 import ResetPasswordScreen from './Screens/ResetPasswordScreen/ResetPasswordScreen'
 import CreateWorkspaceScreen from './Screens/CreateWorkspaceScreen/CreateWorkspaceScreen'
+import EditWorkspaceScreen from './Screens/EditWorkspaceScreen/EditWorkspaceScreen'
 import WorkspaceScreen from './Screens/WorkspaceScreen/WorkspaceScreen'
 import ChannelScreen from './Screens/ChannelScreen/ChannelScreen'
 import CreateChannelScreen from './Screens/CreateChannelScreen/CreateChannelScreen'
@@ -20,6 +21,7 @@ const App = () => {
         <Route path='/' element={<HomeScreen />} />
         <Route path='/workspace/new' element={<CreateWorkspaceScreen />} />
         <Route path='/workspace/:workspace_id' element={<WorkspaceScreen />} />
+        <Route path='/workspace/:workspace_id/edit' element={<EditWorkspaceScreen />} />
         <Route path='/workspace/:workspace_id/channel/new' element={<CreateChannelScreen />} />
         <Route path='/workspace/:workspace_id/channel/:channel_id' element={<ChannelScreen />} />
       </Route>

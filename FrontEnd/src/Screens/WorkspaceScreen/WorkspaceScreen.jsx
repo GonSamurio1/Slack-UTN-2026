@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
-import { WorkspaceProvider, useWorkspace } from '../../Contexts/WorkspaceContext'
+import { WorkspaceProvider, useMemberList, useWorkspace } from '../../Contexts/WorkspaceContext'
 import ChannelList from '../../Components/ChannelList/ChannelList'
 import MemberList from '../../Components/MemberList/MemberList'
 import AddMember from '../../Components/AddMember/AddMember'
+import DeleteWorkspace from '../../Components/DeleteWorkspace/DeleteWorkspace'
 import Alert from '../../Components/Alert/Alert'
 import LogoutButton from '../../Components/LogoutButton/LogoutButton'
+import { getAuthUserId } from '../../utils/currentUser'
 import './WorkspaceScreen.css'
 
 /*
@@ -27,6 +29,8 @@ function WorkspaceScreenContent() {
     workspace_error,
     reloadWorkspace
   } = useWorkspace()
+
+  const { members_response } = useMemberList()
 
   if (workspace_loading) {
     return (
@@ -63,6 +67,16 @@ function WorkspaceScreenContent() {
 
   const workspace = workspace_response.data.workspace
 
+  /*
+  Rol del usuario logueado dentro del workspace (se deduce de la lista de
+  miembros que ya trae el contexto). El backend permite editar a owner y admin.
+  */
+  const current_user_id = getAuthUserId()
+  const my_membership = members_response?.data?.listMembers?.find(
+    (member) => member.id_usuario?._id === current_user_id
+  )
+  const can_edit = my_membership?.rol === 'owner' || my_membership?.rol === 'admin'
+
   return (
     <div className="workspace-screen">
       {/* Header: nombre y descripcion del workspace */}
@@ -78,6 +92,15 @@ function WorkspaceScreenContent() {
           )}
         </div>
         <div className="workspace-screen__header-actions">
+          {can_edit && (
+            <Link
+              className="workspace-screen__edit"
+              to={'/workspace/' + workspace._id + '/edit'}
+            >
+              Editar espacio
+            </Link>
+          )}
+          <DeleteWorkspace />
           <LogoutButton />
         </div>
       </header>

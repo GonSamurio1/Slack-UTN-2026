@@ -1,7 +1,7 @@
 import express from 'express'
 
 // Import funciones de controllers -->
-import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, workspaceMemberesList, addMember } from '../controllers/workspace.controller.js'
+import { createWorkspace, getUserWorkspaces, getWorkspaceById, updateWorkspaceById, deleteWorkspaceById, deleteMemberByRole, updateMemberRole, workspaceMemberesList, addMember } from '../controllers/workspace.controller.js'
 
 // Import Middlewares -->
 import authMiddleware from '../middlewares/auth.middleware.js'
@@ -635,6 +635,117 @@ workspaceRouter.delete('/:workspace_id', authMiddleware, workspaceMiddleware(['o
  *         $ref: '#/components/responses/ServiceUnavailable503'
  */
 workspaceRouter.delete('/:workspace_id/members/:member_id', authMiddleware, workspaceMiddleware(['owner', 'admin']), deleteMemberByRole)
+
+/**
+ * @openapi
+ * /api/workspace/{workspace_id}/members/{member_id}:
+ *   put:
+ *     tags: [Workspaces]
+ *     summary: Cambia el rol de un miembro del workspace
+ *     description: |
+ *       Actualiza el rol de una membresía (busca por `_id` de membresía y workspace).
+ *       Solo **owner** y **admin**.
+ *
+ *       Reglas de jerarquía:
+ *       - El rol destino solo puede ser `admin` o `user` (nunca `owner`).
+ *       - No se puede modificar al `owner` del workspace.
+ *       - Un `admin` no puede modificar a otro `admin`; solo el `owner` puede.
+ *     security: [{ BearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: workspace_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: '665f1c9e2f4a3b0012345679'
+ *       - in: path
+ *         name: member_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la membresía (no del usuario)
+ *         example: '665f1c9e2f4a3b0012345680'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [rol]
+ *             properties:
+ *               rol:
+ *                 type: string
+ *                 enum: [admin, user]
+ *           example: { rol: 'admin' }
+ *     responses:
+ *       200:
+ *         description: Rol actualizado correctamente (devuelve la membresía actualizada)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Envelope'
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       example: 'Rol del miembro actualizado correctamente'
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         member:
+ *                           $ref: '#/components/schemas/Member'
+ *       400:
+ *         description: Header Authorization ausente/sin token, o rol inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               HeaderAusente:
+ *                 value: { ok: false, status: 400, message: 'Auth header is required' }
+ *               TokenAusente:
+ *                 value: { ok: false, status: 400, message: 'Auth token is required' }
+ *               RolInvalido:
+ *                 value: { ok: false, status: 400, message: 'Rol invalido para ejecutar esta accion' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized401'
+ *       403:
+ *         description: No es miembro, rol insuficiente, target owner o admin modificando admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               NoMiembro:
+ *                 value: { ok: false, status: 403, message: 'No pertences a este espacio de trabajo' }
+ *               RolInsuficiente:
+ *                 value: { ok: false, status: 403, message: 'No tenes permisos suficientes para hacer esta operacion' }
+ *               TargetOwner:
+ *                 value: { ok: false, status: 403, message: 'No se puede modificar el rol del propietario del espacio de trabajo' }
+ *               AdminSobreAdmin:
+ *                 value: { ok: false, status: 403, message: 'Solo el propietario del espacio de trabajo puede modificar administradores' }
+ *       404:
+ *         description: Workspace o miembro no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             examples:
+ *               WorkspaceNoEncontrado:
+ *                 value: { ok: false, status: 404, message: 'Workspace no encontrado' }
+ *               MiembroNoEncontrado:
+ *                 value: { ok: false, status: 404, message: 'Miembro no encontrado' }
+ *       500:
+ *         description: Error inesperado. Incluye workspace_id o member_id con formato inválido (error de cast de Mongo)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *             example: { ok: false, status: 500, message: 'Internal server error' }
+ *       503:
+ *         $ref: '#/components/responses/ServiceUnavailable503'
+ */
+workspaceRouter.put('/:workspace_id/members/:member_id', authMiddleware, workspaceMiddleware(['owner', 'admin']), updateMemberRole)
 
 // Alta directa de miembros: POST /:workspace_id/members (ver arriba).
 // La invitacion por mail con token y la pantalla de aceptacion quedan fuera de alcance.

@@ -25,9 +25,9 @@ class MemberRepository {
     return await Member.deleteMany({ espacio_trabajo: workspaceId });
   }
 
-  async updateRoleById(id, role) {
-    return await Member.findByIdAndUpdate(
-      id,
+  async updateRoleById(id, workspaceId, role) {
+    return await Member.findOneAndUpdate(
+      { _id: id, espacio_trabajo: workspaceId },
       { rol: role },
       {
         returnDocument: 'after',

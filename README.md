@@ -39,17 +39,26 @@ Proyecto: clon simplificado de Slack (React + Vite / Express + MongoDB). Fecha: 
 - [x] 1.2 Messages — listar y enviar mensajes de canal (repos ya existen) ✅ (17/11/2026, 21/21 pruebas e2e OK, incluye permisos de autor/owner con segundo usuario temporal)
 - [x] 1.3 Agregar miembro al workspace por email ✅ (19/11/2026, 18/18 pruebas e2e OK)
 - [x] 1.4 Fixes: `req.params.userId`, `req.body` undefined, console.logs con datos personales y `new: true` deprecado ✅ (19/11/2026)
+- [x] 1.5 Editar rol de miembro: `PUT /api/workspace/:workspace_id/members/:member_id` con jerarquía de roles ✅ (21/11/2026)
 
 ### 2. Frontend: WorkspaceScreen + canales (según prototipo)
 - [x] 2.1 `WorkspaceScreen`: header con nombre del workspace (`useWorkspace`), `useChannelsList`, `useMemberList`, botón "Add member" ✅ (17/11/2026, build OK + smoke test de módulos)
 - [x] 2.2 `ChannelContext` + vista de canal: `useChannel` y `useChannelMessages`, enviar mensajes ✅ (17/11/2026, build + smoke test OK; incluye editar/borrar mensajes propios)
 - [x] 2.3 Pantalla de crear canal ✅ (17/11/2026, reutiliza el molde de CreateWorkspaceScreen)
 - [x] 2.4 Logout (borrar token + ruta/botón) ✅ (17/11/2026, botón en Home y en el header del workspace)
+- [x] 2.5 CRUD de workspaces en el front: editar (`EditWorkspaceScreen`) y borrar (botón con confirmación) ✅ (21/11/2026)
 
 ### 3. Entregables obligatorios
 - [ ] 3.1 README.md en Front y Back con documentación de endpoints (backend ya tiene `DOCUMENTACION.md`)
 - [ ] 3.2 Postman collection (base: import de `/api/docs.json`)
 - [ ] 3.3 `.env` de producción en Vercel (front apuntando a URL del back), prueba end-to-end
+
+## Registro técnico: CRUD mínimo de workspaces y miembros (hecho)
+
+- **Backend:** `PUT /api/workspace/:workspace_id/members/:member_id` (`updateMemberRole`) con `authMiddleware` + `workspaceMiddleware(['owner','admin'])`. Valida rol destino (`admin`/`user`), que la membresía exista en el workspace, que no sea el `owner` y que un `admin` no modifique a otro `admin`. `updateRoleById` ahora filtra por `_id` y workspace. Bloque `@openapi` agregado (el path expone `delete` + `put`).
+- **Frontend servicios:** `updateWorkspace`, `deleteWorkspace`, `updateWorkspaceMember` y `deleteWorkspaceMember` en `workspaceService.js`.
+- **Frontend pantallas:** `EditWorkspaceScreen` (`/workspace/:workspace_id/edit`) y `DeleteWorkspace` en el header de `WorkspaceScreen`; link "Editar espacio" visible para owner/admin, botón de borrar solo para owner.
+- **Acciones de miembro:** en `MemberList`, select de rol y botón de expulsión con confirmación, visibles según la jerarquía del backend (owner/admin → `user`; el owner no se toca).
 
 ## Registro técnico: 1.4 Fixes (hecho)
 

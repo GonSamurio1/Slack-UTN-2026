@@ -47,7 +47,7 @@ Además se detectó **un error de lógica confirmado** en la validación nueva d
 | Workspace — borrar | ✅ | `DELETE /api/workspace/:workspace_id` (owner) + cascada |
 | Member — crear | ✅ | `POST /api/workspace/:workspace_id/members` (owner/admin) |
 | Member — listar | ✅ | `GET /api/workspace/:workspace_id/members` |
-| Member — editar rol | ❌ | **No existe endpoint.** `memberRepository.updateRoleById` existe pero no se usa |
+| Member — editar rol | ✅ | `PUT /api/workspace/:workspace_id/members/:member_id` (owner/admin + jerarquía) |
 | Member — borrar | ✅ | `DELETE /api/workspace/:workspace_id/members/:member_id` (owner/admin + jerarquía) |
 
 **Relación modelada:** `Member.id_usuario → User` y `Member.espacio_trabajo → Workspace` (ambos `ObjectId` con `ref`).
@@ -63,28 +63,28 @@ Además se detectó **un error de lógica confirmado** en la validación nueva d
 | Workspace — estado (lista) | ✅ | `HomeScreen` + `WorkspaceList` |
 | Workspace — detalle | ✅ | `WorkspaceScreen` (header + sidebar + área principal) |
 | Workspace — crear | ✅ | `CreateWorkspaceScreen` (`/workspace/new`) |
-| Workspace — editar | ❌ | — |
-| Workspace — borrar | ❌ | — |
+| Workspace — editar | ✅ | `EditWorkspaceScreen` (`/workspace/:workspace_id/edit`) |
+| Workspace — borrar | ✅ | `DeleteWorkspace` en el header de `WorkspaceScreen` |
 | Member — crear | ✅ | `AddMember` (email + rol) |
-| Member — editar rol | ❌ | — |
-| Member — borrar | ❌ | — (el backend ya lo permite) |
+| Member — editar rol | ✅ | `MemberList` (select de rol) |
+| Member — borrar | ✅ | `MemberList` (botón ✕ con confirmación) |
 
 ---
 
 ## 3. Qué falta — Backend
 
-### B1. `PUT /api/workspace/:workspace_id/members/:member_id` (editar rol) 🔴 bloqueante
+### B1. `PUT /api/workspace/:workspace_id/members/:member_id` (editar rol) ✅ hecho (21/11/2026)
 
 - **Controlador:** `updateMemberRole` en `src/controllers/workspace.controller.js`.
-- **Ruta:** en `src/routes/workspace.router.js`, con `authMiddleware` + `workspaceMiddleware(['owner','admin'])`, siguiendo el estilo del `DELETE` de miembros.
-- **Repositorio:** reutilizar `memberRepository.updateRoleById(id, role)` (ya existe, hoy sin uso).
+- **Ruta:** `workspaceRouter.put(...)` con `authMiddleware` + `workspaceMiddleware(['owner','admin'])`.
+- **Repositorio:** `memberRepository.updateRoleById(member_id, workspace_id, rol)`, ahora filtra por `_id` **y** workspace (`findOneAndUpdate`) para no tocar membresías de otro workspace en una carrera.
 - **Validaciones (jerarquía de roles):**
-  1. La membresía debe existir **y pertenecer al workspace de la URL** → `404` (`getByIdAndWorkspace`).
-  2. El rol destino solo admite `admin` o `user`; nunca `owner` → `400`.
+  1. El rol destino solo admite `admin` o `user`; nunca `owner` → `400`.
+  2. La membresía debe existir **y pertenecer al workspace de la URL** → `404` (`getByIdAndWorkspace`).
   3. No se puede modificar al miembro con rol `owner` → `403`.
   4. Un `admin` no puede modificar a otro `admin`; solo el `owner` puede → `403`.
 - **Respuesta:** `200 { ok, status, message, data: { member } }`.
-- **Documentación:** bloque `@openapi` en el router, como el resto de endpoints.
+- **Documentación:** bloque `@openapi` agregado; `/api/docs.json` expone `put` junto a `delete` en el mismo path.
 
 ### B2. Corregir la descripción vacía ✅ corregido (20/11/2026)
 
@@ -109,44 +109,51 @@ Cubrir el endpoint nuevo y los flujos tocados (ver checklist en la sección 7).
 
 ## 4. Qué falta — Frontend
 
-### F1. Servicios 🔴 bloqueante
+### F1. Servicios ✅ hecho (21/11/2026)
 
-Agregar en `FrontEnd/src/services/workspaceService.js`, con el mismo patrón `fetch` + `Authorization: Bearer` + `throw new Error(message)`:
+Agregadas en `FrontEnd/src/services/workspaceService.js`, con el mismo patrón `fetch` + `Authorization: Bearer` + `throw new Error(message)`:
 
-| Función | Endpoint |
-|---|---|
-| `updateWorkspace(workspace_id, name, description)` | `PUT /api/workspace/:workspace_id` |
-| `deleteWorkspace(workspace_id)` | `DELETE /api/workspace/:workspace_id` |
-| `updateWorkspaceMember(workspace_id, member_id, rol)` | `PUT /api/workspace/:workspace_id/members/:member_id` |
-| `deleteWorkspaceMember(workspace_id, member_id)` | `DELETE /api/workspace/:workspace_id/members/:member_id` |
+| Función | Endpoint | Estado |
+|---|---|---|
+| `updateWorkspace(workspace_id, name, description)` | `PUT /api/workspace/:workspace_id` | ✅ endpoint existe |
+| `deleteWorkspace(workspace_id)` | `DELETE /api/workspace/:workspace_id` | ✅ endpoint existe |
+| `updateWorkspaceMember(workspace_id, member_id, rol)` | `PUT /api/workspace/:workspace_id/members/:member_id` | ⚠️ falta el endpoint (B1) |
+| `deleteWorkspaceMember(workspace_id, member_id)` | `DELETE /api/workspace/:workspace_id/members/:member_id` | ✅ endpoint existe |
 
-### F2. Editar workspace 🔴 bloqueante
+> Nota: `updateWorkspace` no puede vaciar la descripción (el backend interpreta `""` como "no enviar"). La clave de respuesta del borrado de miembro es `data.memberDeletd` (typo del backend).
 
-Recomendado: **`EditWorkspaceScreen`** nueva (molde de `CreateWorkspaceScreen`), ruta `/workspace/:workspace_id/edit` en `App.jsx` dentro de `AuthMiddleware`.
+### F2. Editar workspace ✅ hecho (21/11/2026)
 
-- Precargar `name` y `description` desde `useWorkspace()`.
-- Form con `useForm` + `useRequest` + `TextField` / `TextAreaField` / `Button` / `Alert`.
-- Al guardar: `updateWorkspace(...)` y volver a `/workspace/:workspace_id` (el `WorkspaceProvider` se re-monta y trae los datos frescos).
-- Acceso visible desde el header de `WorkspaceScreen`.
+Implementado en `FrontEnd/src/Screens/EditWorkspaceScreen/` (`EditWorkspaceScreen.jsx` + `.css`), ruta `/workspace/:workspace_id/edit` en `App.jsx` dentro de `AuthMiddleware`.
 
-### F3. Borrar workspace 🔴 bloqueante
+- Precarga `name` y `description` con un `GET /api/workspace/:workspace_id` propio (no usa `WorkspaceProvider`: evita pedir canales y miembros que no hacen falta acá).
+- El formulario se monta recién cuando el workspace llegó, así `useForm` arranca con los valores actuales (no hace falta sincronizar después).
+- Form con `useForm` + `useRequest` + `TextField` / `TextAreaField` / `Button` / `Alert`; reutiliza `CreateWorkspaceScreen.css` para el layout.
+- Al guardar: `updateWorkspace(...)` → vuelve a `/workspace/:workspace_id`, donde el `WorkspaceProvider` consulta la API de nuevo y muestra los datos frescos.
+- Acceso desde el header de `WorkspaceScreen`: link "Editar espacio" visible para `owner` y `admin` (la regla del backend).
+- Limitación conocida: vaciar la descripción **no la borra** (el backend interpreta `""` como "no enviar").
 
-- Botón en el header de `WorkspaceScreen` (visible solo para `owner`, que es el único rol habilitado en el backend).
-- Confirmación explícita (el borrado es en cascada: membresías, canales y mensajes).
-- Al confirmar: `deleteWorkspace(...)` → `navigate('/')` → la lista del Home se refresca.
+### F3. Borrar workspace ✅ hecho (21/11/2026)
 
-### F4. Acciones de miembros 🔴 bloqueante
+Implementado en `FrontEnd/src/Components/DeleteWorkspace/DeleteWorkspace.jsx` (+ `.css`), montado en el header de `WorkspaceScreen`:
 
-En `MemberList` (o un componente `MemberActions` nuevo):
+- Botón "Eliminar espacio" visible **solo para `owner`**, deducido de `members_response.data.listMembers` + `getAuthUserId()`.
+- Confirmación explícita con `window.confirm` (el borrado es en cascada: membresías, canales y mensajes).
+- Al confirmar: `deleteWorkspace(...)` → `navigate('/')` → el Home vuelve a consultar la lista.
+- Error del backend mostrado con `Alert` flotante bajo el botón.
 
-- Saber el rol del usuario logueado: `getAuthUserId()` + buscar su membresía en `members_response.data.listMembers`.
-- **Editar rol:** `select` con `Miembro` / `Administrador` → `updateWorkspaceMember(...)` → `reloadWorkspace()`.
-- **Borrar:** botón con confirmación → `deleteWorkspaceMember(...)` → `reloadWorkspace()`.
+### F4. Acciones de miembros ✅ hecho (23/11/2026)
+
+Implementado en `FrontEnd/src/Components/MemberList/MemberList.jsx` (+ `.css`):
+
+- Rol del usuario logueado: `getAuthUserId()` + búsqueda de su membresía en `members_response.data.listMembers`.
+- **Editar rol:** `select` `Miembro` / `Administrador` → `updateWorkspaceMember(...)` → `reloadWorkspace()`. El select es optimista (muestra el rol elegido mientras guarda) y vuelve al valor real si el backend rechaza.
+- **Expulsar:** botón `✕` con `window.confirm` → `deleteWorkspaceMember(...)` → `reloadWorkspace()`.
 - **Visibilidad según jerarquía (misma regla que el backend):**
   - nadie edita/expulsa al `owner`;
-  - un `admin` no edita/expulsa a otro `admin`;
-  - un `admin` sí puede editar/expulsar a `user` y editarse a sí mismo solo dentro de lo permitido (evitar autodemoción accidental con confirmación).
-- Estados de carga/error por fila y recarga de la lista tras cada acción.
+  - un `admin` solo gestiona a miembros con rol `user` (no a otros admins ni a sí mismo, porque el backend lo rechaza con `403`);
+  - un `user` no ve acciones (solo el texto del rol).
+- Estados de carga/error **por fila** (`disabled` mientras guarda, error inline debajo del miembro).
 
 ### F5. Verificación 🔴 bloqueante
 
@@ -210,7 +217,7 @@ En `MemberList` (o un componente `MemberActions` nuevo):
 | 3 | `BackEnd/src/middlewares/error.middleware.js` | `workspace_id` con formato inválido → `CastError` → `500` | Código incorrecto para un error del cliente | Mapear `CastError` a `400`. Ya está documentado como `500` en Swagger, así que hay que actualizar la doc también. |
 | 4 | `BackEnd/src/repositories/workspace.repository.js` / controlador | Si `updateById` devuelve `null` (borrado en carrera) → `200` con `workspace: null` | Caso borde | Responder `404` |
 | 5 | `FrontEnd/src/Middlewares/AuthMiddleware.jsx` | Solo valida presencia del token, no expiración; no hay manejo global de `401` | Sesión "fantasma": la UI cree estar logueada y los requests fallan | Decodificar `exp` o manejar `401` limpiando el token y redirigiendo a login |
-| 6 | `BackEnd/src/controllers/workspace.controller.js` (`addMember`) vs `deleteMemberByRole` | Un `admin` puede **crear** a otro `admin`, pero no puede **expulsarlo** (solo el owner) | Política asimétrica | Decidir: o un admin solo agrega `user`, o un admin también puede expulsar admins. Alinear ambos endpoints. |
+| 6 | `BackEnd/src/controllers/workspace.controller.js` (`addMember`) vs `deleteMemberByRole` / `updateMemberRole` | Un `admin` puede **crear** a otro `admin`, pero no puede **expulsarlo ni cambiarle el rol** (solo el owner) | Política asimétrica | Decidir: o un admin solo agrega `user`, o un admin también puede expulsar/modificar admins. Alinear ambos endpoints. |
 | 7 | `BackEnd/src/models/member.model.js` | Nada impide más de un `owner` por workspace a nivel DB (solo se crea uno por lógica) | Riesgo si se inserta directo | Índice único parcial `{ espacio_trabajo: 1 }` con `partialFilterExpression: { rol: 'owner' }` |
 | 8 | `BackEnd/src/repositories/workspace.repository.js` (`deleteByIdWithCascade`) | No borra `DirectMessage` | Huérfanos futuros si se habilitan los DM | Incluirlo en la cascada cuando existan endpoints |
 | 9 | Varios | Detalles cosméticos: "adminstradores" en el error de `deleteMemberByRole`; método `getAllChannelsByWorkpaceId` (typo) | Sin impacto funcional | Corregir al tocar esos archivos |
@@ -256,9 +263,9 @@ En `MemberList` (o un componente `MemberActions` nuevo):
 
 1. ~~**B2** (fix descripción) + **B3** (update vacío/404)~~ ✅ hecho (20/11/2026).
 2. **B1** (endpoint editar rol) + `@openapi` + e2e.
-3. **F1** (servicios).
-4. **F2/F3** (editar y borrar workspace).
-5. **F4** (acciones de miembros).
+3. ~~**F1** (servicios)~~ ✅ hecho (21/11/2026).
+4. ~~**F3** (borrar workspace) + **F2** (editar workspace)~~ ✅ hechos (21/11/2026).
+5. ~~**B1** (endpoint editar rol) + **F4** (acciones de miembros)~~ ✅ hechos (21 y 23/11/2026).
 6. **F5** (build, smoke y recorrido manual) + actualizar `README.md`, `BackEnd/DOCUMENTACION.md` y este archivo.
 
 ---

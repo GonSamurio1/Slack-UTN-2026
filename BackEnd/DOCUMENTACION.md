@@ -135,6 +135,7 @@ Middlewares de ruta:
 | `PUT` | `/api/workspace/:workspace_id` | `authMiddleware` + `workspaceMiddleware(['owner','admin'])` | `owner` / `admin` | Actualiza nombre y/o descripción del workspace. |
 | `DELETE` | `/api/workspace/:workspace_id` | `authMiddleware` + `workspaceMiddleware(['owner'])` | solo `owner` | Elimina el workspace. |
 | `DELETE` | `/api/workspace/:workspace_id/members/:member_id` | `authMiddleware` + `workspaceMiddleware(['owner','admin'])` | `owner` / `admin` | Elimina (expulsa) un miembro del workspace por ID de membresía. |
+| `PUT` | `/api/workspace/:workspace_id/members/:member_id` | `authMiddleware` + `workspaceMiddleware(['owner','admin'])` | `owner` / `admin` | Cambia el rol de un miembro (`admin` o `user`). No permite tocar al `owner` ni que un `admin` modifique a otro `admin`. |
 
 ### 5.4 Endpoints planificados (no implementados)
 

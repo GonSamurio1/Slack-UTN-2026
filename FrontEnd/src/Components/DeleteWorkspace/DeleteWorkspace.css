@@ -1,0 +1,39 @@
+/*
+Boton para eliminar el workspace desde el header (solo owner).
+Usa el rojo de estados del proyecto para diferenciarlo de las acciones comunes.
+*/
+
+.delete-workspace {
+  position: relative;
+}
+
+.delete-workspace__button {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error);
+  background: var(--background);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.delete-workspace__button:hover:not(:disabled) {
+  background: var(--error-bg);
+}
+
+.delete-workspace__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* El error se muestra como banner flotante debajo del boton para no
+   desacomodar el header */
+.delete-workspace__error {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  z-index: 10;
+}
